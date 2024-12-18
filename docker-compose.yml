@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: app
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    depends_on:
+     db:
+       condition: service_healthy
+  db:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: 'novel'
+      MYSQL_ROOT_PASSWORD: '0423'
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 2s       # 건강 상태를 체크하는 간격
+      timeout: 3s         # 체크 타임아웃
+      retries: 5          # 몇 번 실패하면 unhealthy로 간주할지
+      start_period: 10s   # 초기화 단계에서 healthcheck 시작 전 대기 시간
