@@ -1,6 +1,5 @@
 package com.webnovel.security.oauth2.service;
 
-import com.webnovel.oauth2.dto.*;
 import com.webnovel.security.oauth2.dto.*;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
@@ -8,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -26,16 +26,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         log.info("loadUser : {}", oAuth2User);
 
+        // naver, google인지
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        OAuth2Response oAuth2Response = null;
+        OAuth2Response oAuth2Response = OAuth2ResponseFactory.createOAuth2Response(registrationId, oAuth2User.getAttributes());
 
-        if(registrationId.equals("naver")) {
-            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-        } else if(registrationId.equals("google")) {
-            oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-        } else{
-            return null;
+        // registrationId와 일치하는 제공자가 없으면 예외
+        if(oAuth2Response == null) {
+            throw new OAuth2AuthenticationException("unkown provider -> "+ registrationId );
         }
 
         String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
