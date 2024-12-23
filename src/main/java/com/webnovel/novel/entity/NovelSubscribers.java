@@ -1,5 +1,6 @@
 package com.webnovel.novel.entity;
 
+import com.webnovel.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Tag {
+public class NovelSubscribers {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,11 +19,12 @@ public class Tag {
     @JoinColumn(name = "novel_id")
     private Novel novel;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public Tag(Novel novel, String name) {
+    public NovelSubscribers(Novel novel, User user) {
         this.novel = novel;
-        this.name = name;
+        this.user = user;
     }
 }

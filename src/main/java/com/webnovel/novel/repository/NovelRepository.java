@@ -13,8 +13,9 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
 
     @Query("SELECT n FROM Novel n JOIN FETCH n.author WHERE n.id=:id")
     Optional<Novel> findNovelWithUserById(@Param("id") long id);
+
     default Novel findByNovelIdOrElseThrow(long novelId) {
-        return findById(novelId)
+        return findNovelWithUserById(novelId)
                 .orElseThrow(()-> new NotFoundException("Not found novel with id " + novelId));
     }
 }
