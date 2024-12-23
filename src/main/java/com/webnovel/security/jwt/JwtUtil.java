@@ -13,8 +13,11 @@ import java.util.Date;
 public class JwtUtil {
 
     private SecretKey secretKey;
+    public static final long ACCESS_LIFE_TIME = 60 * 60 * 1000;
+    public static final long REFRESH_LIFE_TIME = 24 * 60 * 60 * 1000;
+    public static final String TOKEN_PREFIX = "Bearer ";
 
-    public JwtUtil(@Value("${JWT_SECRET_KEY}") String secret) {
+    public JwtUtil(@Value("${jwt.secret.key}") String secret) {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
@@ -38,5 +41,9 @@ public class JwtUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public String prependTokenPrefix(String token) {
+        return TOKEN_PREFIX + token;
     }
 }

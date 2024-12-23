@@ -1,13 +1,14 @@
 package com.webnovel.security.oauth2.service;
 
-import com.webnovel.security.oauth2.dto.*;
+import com.webnovel.security.oauth2.dto.CustomOAuth2User;
+import com.webnovel.security.oauth2.dto.OAuth2Response;
+import com.webnovel.security.oauth2.dto.UserDto;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 

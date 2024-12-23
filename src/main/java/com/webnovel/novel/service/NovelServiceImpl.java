@@ -1,6 +1,7 @@
 package com.webnovel.novel.service;
 
 import com.webnovel.novel.dto.NovelCreateRequestDto;
+import com.webnovel.novel.dto.NovelCreateResponseDto;
 import com.webnovel.novel.dto.NovelInfoResponseDto;
 import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.repository.EpisodeRepository;
@@ -20,7 +21,8 @@ public class NovelServiceImpl implements NovelService {
 
     @Override
     @Transactional
-    public void createNovel(NovelCreateRequestDto request) {
+    public NovelCreateResponseDto createNovel(NovelCreateRequestDto request) {
+        return null;
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.webnovel.novel.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class NovelTag {
 
     @Id
