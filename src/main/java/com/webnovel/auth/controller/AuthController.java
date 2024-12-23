@@ -7,6 +7,7 @@ import com.webnovel.auth.dto.SignupResponseDto;
 import com.webnovel.auth.service.AuthServiceImpl;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.security.jwt.AuthUser;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,9 +25,10 @@ public class AuthController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<ResponseDto<LoginResponseDto>> login(
-            @RequestBody LoginRequestDto loginRequestDto
+            @RequestBody LoginRequestDto loginRequestDto,
+            HttpServletResponse response
     ) {
-        LoginResponseDto login = authService.login(loginRequestDto);
+        LoginResponseDto login = authService.login(loginRequestDto, response);
 
         return ResponseDto.of(HttpStatus.OK, login).toEntity();
     }

@@ -1,5 +1,6 @@
 package com.webnovel.security.oauth2.component;
 
+import com.webnovel.security.jwt.TokenType;
 import com.webnovel.security.oauth2.dto.CustomOAuth2User;
 import com.webnovel.security.jwt.JwtUtil;
 import jakarta.servlet.ServletException;
@@ -34,9 +35,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority authority = iterator.next();
         String role = authority.getAuthority();
 
-        String token = jwtUtil.generateJwt(username, role, 60 * 60 * 60L);
-        // 토큰 헤더에 저장
-        response.addHeader("Authorization", "Bearer " + token);
-        response.sendRedirect("http://localhost:3000/");
+        String token = jwtUtil.generateJwt(username, role, TokenType.ACCESS);
+        response.sendRedirect("http://localhost:3000/?Authorization=" + token);
+
     }
 }

@@ -17,7 +17,7 @@ public class OAuth2ResponseFactory {
      * @return
      */
     public static OAuth2Response createOAuth2Response(String registrationId, Map<String, Object> attributes) {
-        OAuth2Provider provider = OAuth2Provider.valueOf(registrationId);
+        OAuth2Provider provider = OAuth2Provider.parse(registrationId);
 
         return switch (provider) {
             case GOOGLE -> new GoogleResponse(attributes);
