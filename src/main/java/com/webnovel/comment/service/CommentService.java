@@ -13,5 +13,5 @@ public interface CommentService {
     ResponseDto<CommentDetailsDto> createComment(AuthUser authUser, long novelId, long episodeId, CommentCreateDto request);
     ResponseDto<CommentDetailsDto> updateComment(AuthUser authUser, long novelId, long episodeId, long commentId, CommentUpdateDto request);
     ResponseDto<Void> deleteComment(AuthUser authUser, long novelId, long episodeId, long commentId);
-    ResponseDto<List<CommentDetailsDto>> getAllComments(long novelId, long episodeId);
+    ResponseDto<List<CommentDetailsDto>> getAllComments(long episodeId);
 }

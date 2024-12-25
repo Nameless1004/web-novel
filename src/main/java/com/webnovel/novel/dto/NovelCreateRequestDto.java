@@ -13,5 +13,5 @@ public class NovelCreateRequestDto {
     private String title;
     private String genre;
     private String summary;
-    private List<String> tags;
+    private List<Long> tagIds;
 }

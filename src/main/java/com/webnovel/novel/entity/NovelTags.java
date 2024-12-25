@@ -5,25 +5,23 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Tag {
+public class NovelTags {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "tag")
-    private List<NovelTags> tags;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Novel novel;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Tag tag;
 
-    public Tag(Novel novel, String name) {
+    public NovelTags(Novel novel, Tag tag) {
         this.novel = novel;
-        this.name = name;
+        this.tag = tag;
     }
 }

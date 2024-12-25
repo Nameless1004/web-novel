@@ -1,5 +1,6 @@
 package com.webnovel.novel.entity;
 
+import com.webnovel.novel.dto.NovelUpdateDto;
 import com.webnovel.novel.enums.NovelStatus;
 import com.webnovel.user.entity.User;
 import jakarta.persistence.*;
@@ -33,7 +34,7 @@ public class Novel {
     private LocalDateTime lastUpdatedAt;
 
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags = new ArrayList<>();
+    private List<NovelTags> tags = new ArrayList<>();
 
 
     public Novel(User author, String title, String summary, NovelStatus status, LocalDateTime publishedAt) {
@@ -46,5 +47,13 @@ public class Novel {
 
     private void updateLastUpdatedAt() {
         lastUpdatedAt = LocalDateTime.now();
+    }
+
+    public void update(NovelUpdateDto request, List<NovelTags> newTags) {
+        this.title = request.getTitle();
+        this.summary = request.getSummary();
+        this.status = request.getStatus();
+        this.tags = newTags;
+        updateLastUpdatedAt();
     }
 }

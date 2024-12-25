@@ -2,19 +2,14 @@ package com.webnovel.novel.service;
 
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.*;
-import com.webnovel.novel.entity.Episode;
-import com.webnovel.novel.entity.Novel;
-import com.webnovel.novel.entity.NovelSubscribers;
-import com.webnovel.novel.entity.Tag;
+import com.webnovel.novel.entity.*;
 import com.webnovel.novel.enums.NovelStatus;
 import com.webnovel.novel.repository.*;
 import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,43 +23,71 @@ public class NovelServiceImpl implements NovelService {
 
     private final NovelRepository novelRepository;
     private final EpisodeRepository episodeRepository;
-    private final NovelPreferenceUser novelPreferenceUser;
+    private final NovelPreferenceUserRepository novelPreferenceUserRepository;
     private final NovelSubscribersRepository novelSubscribersRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final NovelValidator novelValidator;
+    private final NovelTagRepository novelTagRepository;
 
     @Override
-    public NovelCreateResponseDto createNovel(AuthUser authUser, NovelCreateRequestDto request) {
+    public ResponseDto<NovelCreateResponseDto> createNovel(AuthUser authUser, NovelCreateRequestDto request) {
         User user = userRepository.findByUsernameOrElseThrow(authUser.getUsername());
+
+        // 타이틀 중복 검사
+        novelValidator.checkDuplicatedNovelTitle(request.getTitle());
+
         Novel savedNovel = novelRepository.save(new Novel(user, request.getTitle(), request.getSummary(), NovelStatus.PUBLISHING, LocalDateTime.now()));
 
-        List<Tag> tags = request.getTags()
-                .stream()
-                .map(x-> new Tag(savedNovel, x))
+        List<Tag> tags = tagRepository.findAllById(request.getTagIds());
+
+        List<NovelTags> novelTags = tags.stream()
+                .map(x -> new NovelTags(savedNovel, x))
                 .toList();
 
-        tagRepository.saveAll(tags);
+        novelTagRepository.saveAll(novelTags);
 
         List<String> tagNames = tags.stream()
-                .map(x -> x.getName())
+                .map(Tag::getName)
                 .toList();
 
-        return NovelCreateResponseDto.builder()
-                .novelId(savedNovel.getId())
-                .tag(tagNames)
-                .authorUsername(authUser.getUsername())
-                .summary(savedNovel.getSummary())
-                .build();
+        return ResponseDto.of(HttpStatus.CREATED,
+                NovelCreateResponseDto.builder()
+                    .novelId(savedNovel.getId())
+                    .tag(tagNames)
+                    .authorUsername(authUser.getUsername())
+                    .summary(savedNovel.getSummary())
+                    .build());
     }
 
     @Override
-    public void deleteNovel(int novelId) {
+    public ResponseDto<Void> updateNovel(AuthUser authUser, long novelId, NovelUpdateDto request) {
+        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
+        novelValidator.checkAuthority(authUser, novel);
+        // 타이틀 중복 검사
+        novelValidator.checkDuplicatedNovelTitle(request.getTitle());
+
+        List<Tag> tags = tagRepository.findAllById(request.getTagIds());
+        List<NovelTags> novelTags = tags.stream()
+                .map(x -> new NovelTags(novel, x))
+                .toList();
+
+        novelTagRepository.deleteAllByNovel(novel);
+        List<NovelTags> novelTags1 = novelTagRepository.saveAll(novelTags);
+        novel.update(request, novelTags);
+
+        return ResponseDto.of(HttpStatus.OK, "성공적으로 수정 됐습니다.");
+    }
+
+    @Override
+    public ResponseDto<Void> deleteNovel(AuthUser authUser, long novelId) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         novelRepository.delete(novel);
+        return ResponseDto.of(HttpStatus.OK, "성공적으로 삭제됐습니다.");
     }
 
     @Override
-    public NovelInfoResponseDto getNovelDetails(long novelId) {
+    public ResponseDto<NovelInfoResponseDto> getNovelDetails(long novelId) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         User author = novel.getAuthor();
 
@@ -78,7 +101,7 @@ public class NovelServiceImpl implements NovelService {
                 .author(author.getName())
                 .viewCount(0)
                 .episodeCount(episodeCount)
-                .recommendCount(0)
+                .recommendationCount(0)
                 .preferenceCount(0)
                 .notificationCount(0)
                 .tags(null)
@@ -86,9 +109,44 @@ public class NovelServiceImpl implements NovelService {
         return null;
     }
 
-    public ResponseDto<Void> addEpisodeToNovel(AuthUser authUser, long novelId, EpisodeCreateRequestDto requestDto) {
+    /**
+     * 선호 작품 등록
+     * @param authUser
+     * @param novelId
+     * @return
+     */
+    public ResponseDto<Void> registPreferenceNovel(AuthUser authUser, long novelId) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
-        checkAuthority(authUser, novel);
+        NovelPreferenceUser novelSubscribers = new NovelPreferenceUser(novel, authUser.toUserEntity());
+        novelPreferenceUserRepository.save(novelSubscribers);
+        return ResponseDto.of(HttpStatus.OK, "성공적으로 등록됐습니다.");
+    }
+
+    /**
+     * 알림 신청
+     * @param authUser
+     * @param novelId
+     * @return
+     */
+    @Override
+    public ResponseDto<Void> subscribeNovel(AuthUser authUser, long novelId) {
+        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
+        NovelSubscribers novelSubscribers = new NovelSubscribers(novel, authUser.toUserEntity());
+        novelSubscribersRepository.save(novelSubscribers);
+        return ResponseDto.of(HttpStatus.OK, "성공적으로 등록됐습니다.");
+    }
+
+    /**
+     * 에피소드 등록
+     * @param authUser
+     * @param novelId
+     * @param requestDto
+     * @return
+     */
+    @Override
+    public ResponseDto<Void> addEpisode(AuthUser authUser, long novelId, EpisodeCreateRequestDto requestDto) {
+        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
+        novelValidator.checkAuthority(authUser, novel);
 
         Episode newEpisode = new Episode(novel, requestDto.getTitle(), requestDto.getAuthorReview(), requestDto.getContent(), getLastEpisodeNumber(novel));
         episodeRepository.save(newEpisode);
@@ -96,36 +154,63 @@ public class NovelServiceImpl implements NovelService {
         return ResponseDto.of(HttpStatus.CREATED, "성공적으로 추가됐습니다.");
     }
 
+    /**
+     * 에피소드 수정
+     * @param authUser
+     * @param novelId
+     * @param episodeId
+     * @param updateDto
+     * @return
+     */
+    @Override
     public ResponseDto<Void> updateEpisode(AuthUser authUser, long novelId, long episodeId, EpisodeUpdateDto updateDto) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
         episode.update(updateDto);
-        checkAuthority(authUser, novel);
+
+        novelValidator.checkAuthority(authUser, novel);
 
         return ResponseDto.of(HttpStatus.OK, "성공적으로 수정됐습니다.");
     }
 
+    /**
+     * 에피소드 삭제
+     * @param novelId
+     * @param episodeId
+     * @return
+     */
+    @Override
     public ResponseDto<Void> deleteEpisode(long novelId, long episodeId) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
         episodeRepository.delete(episode);
+        return ResponseDto.of(HttpStatus.OK, "성공적으로 삭제됐습니다.");
     }
 
+    /**
+     * 마지막 회차 번호
+     * @param novel
+     * @return
+     */
     private int getLastEpisodeNumber(Novel novel) {
-        return Math.max(episodeRepository.countEpisodeByNovelId(novel.getId()) - 1, 0);
+        return episodeRepository.countEpisodeByNovelId(novel.getId());
     }
 
+    /**
+     * 총 추천 수
+     * @param novel
+     * @return
+     */
     private long getTotalRecommendationCount(Novel novel) {
         return episodeRepository.getTotalRecommendationCount(novel.getId());
     }
 
+    /**
+     * 총 조회 수
+     * @param novel
+     * @return
+     */
     private long getTotalViewCount(Novel novel) {
         return episodeRepository.getTotalViewCount(novel.getId());
-    }
-
-    private void checkAuthority(AuthUser authUser, Novel novel) {
-        if(!authUser.getUsername().equals(novel.getAuthor().getUsername())) {
-            throw new AccessDeniedException("권한이 없습니다.");
-        }
     }
 }

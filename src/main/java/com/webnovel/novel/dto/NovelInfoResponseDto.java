@@ -15,7 +15,7 @@ public class NovelInfoResponseDto {
     private String novelStatus;
     private long viewCount;
     private long episodeCount;
-    private long recommendCount;
+    private long recommendationCount;
     private long preferenceCount;
     private long notificationCount;
     private List<String> tags;

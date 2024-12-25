@@ -34,4 +34,8 @@ public class Comment {
         this.content = content;
         this.commentedAt = LocalDateTime.now();
     }
+
+    public void update(String content) {
+        this.content = content;
+    }
 }

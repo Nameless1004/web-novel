@@ -54,7 +54,7 @@ public class CommentController {
     public ResponseEntity<ResponseDto<List<CommentDetailsDto>>> getComments(
             @PathVariable Long novelId,
             @PathVariable Long episodeId) {
-        ResponseDto<List<CommentDetailsDto>> result = commentService.getAllComments(novelId, episodeId);
+        ResponseDto<List<CommentDetailsDto>> result = commentService.getAllComments(episodeId);
         return result.toEntity();
     }
 }

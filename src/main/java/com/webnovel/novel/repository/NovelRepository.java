@@ -18,4 +18,6 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
         return findNovelWithUserById(novelId)
                 .orElseThrow(()-> new NotFoundException("Not found novel with id " + novelId));
     }
+
+    boolean existsByTitle(String title);
 }

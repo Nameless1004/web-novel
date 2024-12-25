@@ -3,11 +3,11 @@ package com.webnovel.novel.controller;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.NovelCreateRequestDto;
 import com.webnovel.novel.dto.NovelCreateResponseDto;
+import com.webnovel.novel.dto.NovelUpdateDto;
 import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.service.NovelService;
 import com.webnovel.security.jwt.AuthUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,23 @@ public class NovelController {
 
     private final NovelService novelService;
 
+    // ---------------------
+    //      소설 CRUD
+    // ---------------------
     @PostMapping
     public ResponseEntity<ResponseDto<NovelCreateResponseDto>> registNovel(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestBody NovelCreateRequestDto request
-            ) {
-        NovelCreateResponseDto novel = novelService.createNovel(authUser, request);
-        return ResponseDto.of(HttpStatus.CREATED, novel).toEntity();
+            @RequestBody NovelCreateRequestDto request ) {
+        return novelService.createNovel(authUser, request)
+                .toEntity();
+    }
+
+    @PostMapping("/{novelId}/preferences")
+    public ResponseEntity<ResponseDto<Void>> registPreferenceNovel(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable long novelId ) {
+        return novelService.registPreferenceNovel(authUser, novelId)
+                .toEntity();
     }
 
     @GetMapping
@@ -36,15 +46,26 @@ public class NovelController {
     }
 
     @DeleteMapping("/{novelId}")
-    public ResponseEntity<ResponseDto<?>> deleteNovel(@PathVariable Long novelId) {
-        return null;
+    public ResponseEntity<ResponseDto<Void>> deleteNovel(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long novelId ) {
+        return novelService.deleteNovel(authUser, novelId)
+                .toEntity();
     }
 
     @PatchMapping("/{novelId}")
-    public ResponseEntity<ResponseDto<?>> updateNovel(@PathVariable Long novelId) {
-        return null;
+    public ResponseEntity<ResponseDto<Void>> updateNovel(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long novelId,
+            @RequestBody NovelUpdateDto updateDto) {
+        return novelService.updateNovel(authUser, novelId, updateDto)
+                .toEntity();
     }
 
+
+    //-----------------------
+    //     에피 소드 CRUD
+    //-----------------------
     @PostMapping("/{novelId}/episodes")
     public ResponseEntity<ResponseDto<?>> registEpisode(
             @PathVariable Long novelId) {
