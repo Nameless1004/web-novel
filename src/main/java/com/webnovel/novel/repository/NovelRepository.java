@@ -4,6 +4,9 @@ import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.novel.entity.Novel;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.hibernate.annotations.NotFound;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +23,6 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     }
 
     boolean existsByTitle(String title);
+
+    Page<Novel> findAllByOrderByLastUpdatedAtDesc(Pageable pageable);
 }

@@ -1,8 +1,14 @@
 package com.webnovel.novel.service;
 
+import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.*;
+import com.webnovel.novel.entity.Novel;
 import com.webnovel.security.jwt.AuthUser;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface NovelService {
 
@@ -79,4 +85,6 @@ public interface NovelService {
      * @return
      */
     ResponseDto<Void> deleteEpisode(long novelId, long episodeId);
+
+    ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
 }

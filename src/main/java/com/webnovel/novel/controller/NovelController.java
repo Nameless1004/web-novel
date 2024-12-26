@@ -1,13 +1,16 @@
 package com.webnovel.novel.controller;
 
+import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.NovelCreateRequestDto;
 import com.webnovel.novel.dto.NovelCreateResponseDto;
+import com.webnovel.novel.dto.NovelListDto;
 import com.webnovel.novel.dto.NovelUpdateDto;
 import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.service.NovelService;
 import com.webnovel.security.jwt.AuthUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +44,11 @@ public class NovelController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseDto<List<Novel>>> getNovelList() {
-        return null;
+    public ResponseEntity<ResponseDto<CustomPage<NovelListDto>>> getNovelList(
+            @RequestParam int page,
+            @RequestParam int size) {
+        return novelService.getNovelList(page, size)
+                .toEntity();
     }
 
     @DeleteMapping("/{novelId}")

@@ -25,7 +25,7 @@ public class Novel {
     private User author;
 
     private String title;
-    private String summary;
+    private String synopsis;
 
     @Enumerated(EnumType.STRING)
     private NovelStatus status;
@@ -37,10 +37,10 @@ public class Novel {
     private List<NovelTags> tags = new ArrayList<>();
 
 
-    public Novel(User author, String title, String summary, NovelStatus status, LocalDateTime publishedAt) {
+    public Novel(User author, String title, String synopsis, NovelStatus status, LocalDateTime publishedAt) {
         this.author = author;
         this.title = title;
-        this.summary = summary;
+        this.synopsis = synopsis;
         this.status = status;
         this.publishedAt = publishedAt;
     }
@@ -51,9 +51,10 @@ public class Novel {
 
     public void update(NovelUpdateDto request, List<NovelTags> newTags) {
         this.title = request.getTitle();
-        this.summary = request.getSummary();
+        this.synopsis = request.getSynopsis();
         this.status = request.getStatus();
-        this.tags = newTags;
+        this.tags.clear();
+        this.tags.addAll(newTags);
         updateLastUpdatedAt();
     }
 }

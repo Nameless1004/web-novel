@@ -22,8 +22,7 @@ public class Tag {
     @Column(nullable = false, unique = true)
     private String name;
 
-    public Tag(Novel novel, String name) {
-        this.novel = novel;
+    public Tag(String name) {
         this.name = name;
     }
 }

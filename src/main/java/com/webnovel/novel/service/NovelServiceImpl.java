@@ -1,5 +1,6 @@
 package com.webnovel.novel.service;
 
+import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.*;
 import com.webnovel.novel.entity.*;
@@ -9,6 +10,10 @@ import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +42,7 @@ public class NovelServiceImpl implements NovelService {
         // 타이틀 중복 검사
         novelValidator.checkDuplicatedNovelTitle(request.getTitle());
 
-        Novel savedNovel = novelRepository.save(new Novel(user, request.getTitle(), request.getSummary(), NovelStatus.PUBLISHING, LocalDateTime.now()));
+        Novel savedNovel = novelRepository.save(new Novel(user, request.getTitle(), request.getSynopsis(), NovelStatus.PUBLISHING, LocalDateTime.now()));
 
         List<Tag> tags = tagRepository.findAllById(request.getTagIds());
 
@@ -56,7 +61,7 @@ public class NovelServiceImpl implements NovelService {
                     .novelId(savedNovel.getId())
                     .tag(tagNames)
                     .authorUsername(authUser.getUsername())
-                    .summary(savedNovel.getSummary())
+                    .summary(savedNovel.getSynopsis())
                     .build());
     }
 
@@ -73,8 +78,8 @@ public class NovelServiceImpl implements NovelService {
                 .toList();
 
         novelTagRepository.deleteAllByNovel(novel);
-        List<NovelTags> novelTags1 = novelTagRepository.saveAll(novelTags);
-        novel.update(request, novelTags);
+        List<NovelTags> newTags = novelTagRepository.saveAllAndFlush(novelTags);
+        novel.update(request, newTags);
 
         return ResponseDto.of(HttpStatus.OK, "성공적으로 수정 됐습니다.");
     }
@@ -96,7 +101,7 @@ public class NovelServiceImpl implements NovelService {
         NovelInfoResponseDto build = NovelInfoResponseDto.builder()
                 .novelId(novelId)
                 .title(novel.getTitle())
-                .summary(novel.getSummary())
+                .summary(novel.getSynopsis())
                 .novelStatus(novel.getStatus().name())
                 .author(author.getName())
                 .viewCount(0)
@@ -107,6 +112,23 @@ public class NovelServiceImpl implements NovelService {
                 .tags(null)
                 .build();
         return null;
+    }
+
+    /**
+     * 소설 목록 페이징 조회
+     * @param page
+     * @param size
+     * @return
+     */
+    @Override
+    public ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Novel> result = novelRepository.findAllByOrderByLastUpdatedAtDesc(pageable);
+        List<NovelListDto> list = result.getContent().stream()
+                .map(NovelListDto::new)
+                .toList();
+
+        return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
     }
 
     /**

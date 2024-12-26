@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -46,6 +48,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User newUser = User.builder()
                     .username(username)
                     .email(oAuth2Response.getEmail())
+                    .nickname(oAuth2Response.getProvider() + "-" + UUID.randomUUID().toString().substring(0, 7))
                     .name(oAuth2Response.getName())
                     .role("ROLE_USER")
                     .password("")

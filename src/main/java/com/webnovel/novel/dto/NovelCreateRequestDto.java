@@ -9,9 +9,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class NovelCreateRequestDto {
-    private Long authorId;
     private String title;
-    private String genre;
-    private String summary;
+    private String synopsis;
     private List<Long> tagIds;
 }

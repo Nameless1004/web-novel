@@ -6,13 +6,15 @@ import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.repository.NovelRepository;
 import com.webnovel.security.jwt.AuthUser;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @Transactional
+@RequiredArgsConstructor
 public class NovelValidator {
 
-    private NovelRepository novelRepository;
+    private final NovelRepository novelRepository;
 
     /**
      * 타이틀 중복 검사

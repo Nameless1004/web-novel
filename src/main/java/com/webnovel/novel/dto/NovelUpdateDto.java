@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class NovelUpdateDto {
     private String title;
-    private String summary;
+    private String synopsis;
     private NovelStatus status;
     private List<Long> tagIds;
 }
