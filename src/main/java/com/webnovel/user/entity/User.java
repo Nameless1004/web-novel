@@ -18,6 +18,7 @@ public class User {
     private Long id;
 
     private String username; // 아이디
+    private String nickname; // 닉네임
     private String name; // 이름
     private String email; // 이메일
     private String role; // 역할
@@ -27,8 +28,9 @@ public class User {
     private List<Novel> myNovels = new ArrayList<>();
 
     @Builder
-    public User(String username, String name, String email, String role, String password) {
+    public User(String username, String nickname, String name, String email, String role, String password) {
         this.username = username;
+        this.nickname = nickname;
         this.name = name;
         this.email = email;
         this.role = role;
@@ -43,5 +45,9 @@ public class User {
     public void update(String name, String email) {
         this.name = name;
         this.email = email;
+    }
+
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
     }
 }
