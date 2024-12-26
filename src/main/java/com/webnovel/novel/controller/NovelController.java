@@ -2,10 +2,7 @@ package com.webnovel.novel.controller;
 
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
-import com.webnovel.novel.dto.NovelCreateRequestDto;
-import com.webnovel.novel.dto.NovelCreateResponseDto;
-import com.webnovel.novel.dto.NovelListDto;
-import com.webnovel.novel.dto.NovelUpdateDto;
+import com.webnovel.novel.dto.*;
 import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.service.NovelService;
 import com.webnovel.security.jwt.AuthUser;
@@ -13,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,7 +28,7 @@ public class NovelController {
     @PostMapping
     public ResponseEntity<ResponseDto<NovelCreateResponseDto>> registNovel(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestBody NovelCreateRequestDto request ) {
+            @Validated @RequestBody NovelCreateRequestDto request ) {
         return novelService.createNovel(authUser, request)
                 .toEntity();
     }
@@ -74,7 +72,8 @@ public class NovelController {
     //-----------------------
     @PostMapping("/{novelId}/episodes")
     public ResponseEntity<ResponseDto<?>> registEpisode(
-            @PathVariable Long novelId) {
+            @PathVariable Long novelId,
+            @Validated @RequestBody EpisodeCreateRequestDto request) {
         return null;
     }
 }

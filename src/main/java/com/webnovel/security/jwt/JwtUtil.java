@@ -36,17 +36,13 @@ public class JwtUtil {
     }
 
     public String generateJwt(String username, String role, TokenType tokenType) {
-        return Jwts.builder()
+        return TOKEN_PREFIX + Jwts.builder()
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenType.getLIFETIME_MS()))
                 .signWith(secretKey)
                 .compact();
-    }
-
-    public String prependTokenPrefix(String token) {
-        return TOKEN_PREFIX + token;
     }
 
     public void addRefreshTokenToCookie(String token, HttpServletResponse response) {
@@ -59,6 +55,6 @@ public class JwtUtil {
     }
 
     public void addAccessTokenToHeader(String accessToken, HttpServletResponse response) {
-        response.addHeader("Authorization", prependTokenPrefix(accessToken));
+        response.addHeader("Authorization", accessToken);
     }
 }

@@ -2,8 +2,10 @@ package com.webnovel.user.service;
 
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.common.exceptions.DuplicatedException;
+import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.user.dto.NicknameUpdateRequestDto;
+import com.webnovel.user.dto.UserDetailsDto;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +30,13 @@ public class UserServiceImpl implements UserService {
         user.updateNickname(request.getNickname());
         userRepository.save(user);
         return ResponseDto.of(HttpStatus.OK, "성공적으로 닉네임이 변경됐습니다.");
+    }
+
+    @Override
+    public ResponseDto<UserDetailsDto> getUserDetails(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(()-> new NotFoundException("User not found."));
+
+        return ResponseDto.of(HttpStatus.OK, new UserDetailsDto(user));
     }
 }
