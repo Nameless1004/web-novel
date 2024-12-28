@@ -36,7 +36,7 @@ public class JwtUtil {
     }
 
     public String generateJwt(String username, String role, TokenType tokenType) {
-        return TOKEN_PREFIX + Jwts.builder()
+        return Jwts.builder()
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
