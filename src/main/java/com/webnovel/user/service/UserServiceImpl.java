@@ -4,6 +4,7 @@ import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.common.exceptions.DuplicatedException;
 import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.security.jwt.AuthUser;
+import com.webnovel.user.dto.DuplicatedResponseDto;
 import com.webnovel.user.dto.NicknameUpdateRequestDto;
 import com.webnovel.user.dto.UserDetailsDto;
 import com.webnovel.user.entity.User;
@@ -38,5 +39,20 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(()-> new NotFoundException("User not found."));
 
         return ResponseDto.of(HttpStatus.OK, new UserDetailsDto(user));
+    }
+
+    @Override
+    public ResponseDto<DuplicatedResponseDto> checkNickname(String nickname) {
+        return ResponseDto.of(HttpStatus.OK, new DuplicatedResponseDto(userRepository.existsByNickname(nickname)));
+    }
+
+    @Override
+    public ResponseDto<DuplicatedResponseDto> checkUsername(String username) {
+        return ResponseDto.of(HttpStatus.OK, new DuplicatedResponseDto(userRepository.existsByUsername(username)));
+    }
+
+    @Override
+    public ResponseDto<DuplicatedResponseDto> checkEmail(String email) {
+        return ResponseDto.of(HttpStatus.OK, new DuplicatedResponseDto(userRepository.existsByEmail(email)));
     }
 }
