@@ -2,6 +2,7 @@ package com.webnovel.common.exceptions;
 
 import com.webnovel.common.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -58,6 +59,32 @@ public class GlobalExceptionHandler {
             fieldErrorDetails.put("defaultMessage", fieldError.getDefaultMessage());
             fieldErrorDetails.put("isError", true);
             errorMap.put(fieldError.getField(), fieldErrorDetails);
+        });
+
+        err.setData(errorMap);
+        return err.toEntity();
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
+        StringBuilder builder = new StringBuilder();
+        e.getConstraintViolations().forEach(violation -> {
+            builder.append("[");
+            builder.append(violation.getPropertyPath());
+            builder.append("](은)는 ");
+            builder.append(violation.getMessage());
+            builder.append(" 입력된 값: [");
+            builder.append(violation.getInvalidValue());
+            builder.append("]\n");
+        });
+
+        ErrorResponse<Map<String, Object>> err = new ErrorResponse<>(HttpStatus.BAD_REQUEST.value(), builder.toString());
+        Map<String, Object> errorMap = new HashMap<>();
+        e.getConstraintViolations().forEach(violation -> {
+            Map<String, Object> fieldErrorDetails = new HashMap<>();
+            fieldErrorDetails.put("defaultMessage", violation.getMessage());
+            fieldErrorDetails.put("isError", true);
+            errorMap.put(violation.getPropertyPath().toString(), fieldErrorDetails);
         });
 
         err.setData(errorMap);

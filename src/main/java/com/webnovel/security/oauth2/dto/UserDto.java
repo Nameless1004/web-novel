@@ -11,11 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserDto {
 
+    private String id;
     private String username;
     private String name;
     private String role;
 
-    public UserDto(String username, String role) {
+    public UserDto(String id, String username, String role) {
+        this.id = id;
         this.username = username;
         this.role = role;
     }

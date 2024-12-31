@@ -37,7 +37,8 @@ public class User {
         this.password = password;
     }
 
-    public User(String username, String role) {
+    public User(Long id, String username, String role) {
+        this.id = id;
         this.username = username;
         this.role = role;
     }

@@ -37,8 +37,8 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidRequestException("Wrong password");
         }
 
-        String accessToken = jwtUtil.generateJwt(user.getUsername(), user.getRole(), TokenType.ACCESS);
-        String refreshToken = jwtUtil.generateJwt(user.getUsername(), user.getRole(), TokenType.REFRESH);
+        String accessToken = jwtUtil.generateJwt(user.getId().toString(), user.getUsername(), user.getRole(), TokenType.ACCESS);
+        String refreshToken = jwtUtil.generateJwt(user.getId().toString(), user.getUsername(), user.getRole(), TokenType.REFRESH);
 
         jwtUtil.addAccessTokenToHeader(accessToken, response);
         jwtUtil.addRefreshTokenToCookie(refreshToken, response);

@@ -54,10 +54,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .password("")
                     .build();
 
-            userRepository.save(newUser);
+            newUser = userRepository.save(newUser);
 
             UserDto userDto = UserDto.builder()
                     .username(username)
+                    .id(newUser.getId().toString())
                     .name(oAuth2Response.getName())
                     .role("ROLE_USER")
                     .build();
@@ -71,6 +72,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             UserDto userDto = UserDto.builder()
                     .username(existsUser.getUsername())
+                    .id(existsUser.getId().toString())
                     .name(existsUser.getName())
                     .role(existsUser.getRole())
                     .build();

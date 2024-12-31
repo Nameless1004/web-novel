@@ -76,6 +76,7 @@ public class CommentServiceImpl implements CommentService {
         List<CommentDetailsDto> find = commentRepository.findAllByEpisode(episode)
                 .stream()
                 .map(x -> CommentDetailsDto.builder()
+                        .id(x.getId())
                         .commentedAt(x.getCommentedAt())
                         .content(x.getContent())
                         .authorUserName(x.getUser().getUsername())

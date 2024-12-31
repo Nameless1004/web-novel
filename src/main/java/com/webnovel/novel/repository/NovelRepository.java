@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface NovelRepository extends JpaRepository<Novel, Long> {
+public interface NovelRepository extends JpaRepository<Novel, Long>, NovelCustomRepository {
 
     @Query("SELECT n FROM Novel n JOIN FETCH n.author WHERE n.id=:id")
     Optional<Novel> findNovelWithUserById(@Param("id") long id);

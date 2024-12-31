@@ -41,8 +41,15 @@ public interface NovelService {
      * @param novelId
      * @return
      */
-    ResponseDto<NovelInfoResponseDto> getNovelDetails(long novelId);
+    ResponseDto<NovelDetailsDto> getNovelDetails(long novelId);
 
+    /**
+     * 소설 목록조회
+     * @param page
+     * @param size
+     * @return
+     */
+    ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
     /**
      * 알림 등록
      * @param authUser
@@ -58,33 +65,4 @@ public interface NovelService {
      * @return
      */
     ResponseDto<Void> registPreferenceNovel(AuthUser authUser, long novelId);
-  
-    /**
-     * 에피소드 등록
-     * @param authUser
-     * @param novelId
-     * @param requestDto
-     * @return
-     */
-    ResponseDto<Void> addEpisode(AuthUser authUser, long novelId, EpisodeCreateRequestDto requestDto);
-
-    /**
-     * 에피소드 수정
-     * @param authUser
-     * @param novelId
-     * @param episodeId
-     * @param updateDto
-     * @return
-     */
-    ResponseDto<Void> updateEpisode(AuthUser authUser, long novelId, long episodeId, EpisodeUpdateDto updateDto);
-
-    /**
-     * 에피소드 삭제
-     * @param novelId
-     * @param episodeId
-     * @return
-     */
-    ResponseDto<Void> deleteEpisode(long novelId, long episodeId);
-
-    ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
 }

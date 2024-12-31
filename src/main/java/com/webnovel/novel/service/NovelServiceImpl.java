@@ -2,6 +2,7 @@ package com.webnovel.novel.service;
 
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
+import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.novel.dto.*;
 import com.webnovel.novel.entity.*;
 import com.webnovel.novel.enums.NovelStatus;
@@ -10,11 +11,16 @@ import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +40,8 @@ public class NovelServiceImpl implements NovelService {
     private final TagRepository tagRepository;
     private final NovelValidator novelValidator;
     private final NovelTagRepository novelTagRepository;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public ResponseDto<NovelCreateResponseDto> createNovel(AuthUser authUser, NovelCreateRequestDto request) {
@@ -58,11 +66,11 @@ public class NovelServiceImpl implements NovelService {
 
         return ResponseDto.of(HttpStatus.CREATED,
                 NovelCreateResponseDto.builder()
-                    .novelId(savedNovel.getId())
-                    .tag(tagNames)
-                    .authorUsername(authUser.getUsername())
-                    .summary(savedNovel.getSynopsis())
-                    .build());
+                        .novelId(savedNovel.getId())
+                        .tag(tagNames)
+                        .authorUsername(authUser.getUsername())
+                        .summary(savedNovel.getSynopsis())
+                        .build());
     }
 
     @Override
@@ -92,30 +100,14 @@ public class NovelServiceImpl implements NovelService {
     }
 
     @Override
-    public ResponseDto<NovelInfoResponseDto> getNovelDetails(long novelId) {
-        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
-        User author = novel.getAuthor();
-
-        long episodeCount = episodeRepository.countEpisodeByNovelId(novelId);
-
-        NovelInfoResponseDto build = NovelInfoResponseDto.builder()
-                .novelId(novelId)
-                .title(novel.getTitle())
-                .summary(novel.getSynopsis())
-                .novelStatus(novel.getStatus().name())
-                .author(author.getName())
-                .viewCount(0)
-                .episodeCount(episodeCount)
-                .recommendationCount(0)
-                .preferenceCount(0)
-                .notificationCount(0)
-                .tags(null)
-                .build();
-        return null;
+    public ResponseDto<NovelDetailsDto> getNovelDetails(long novelId) {
+        return ResponseDto.of(HttpStatus.OK, novelRepository.getNovelDetails(novelId)
+                .orElseThrow(() -> new NotFoundException("Novel not found / id: " + novelId)));
     }
 
     /**
      * 소설 목록 페이징 조회
+     *
      * @param page
      * @param size
      * @return
@@ -133,6 +125,7 @@ public class NovelServiceImpl implements NovelService {
 
     /**
      * 선호 작품 등록
+     *
      * @param authUser
      * @param novelId
      * @return
@@ -146,6 +139,7 @@ public class NovelServiceImpl implements NovelService {
 
     /**
      * 알림 신청
+     *
      * @param authUser
      * @param novelId
      * @return
@@ -158,68 +152,10 @@ public class NovelServiceImpl implements NovelService {
         return ResponseDto.of(HttpStatus.OK, "성공적으로 등록됐습니다.");
     }
 
-    /**
-     * 에피소드 등록
-     * @param authUser
-     * @param novelId
-     * @param requestDto
-     * @return
-     */
-    @Override
-    public ResponseDto<Void> addEpisode(AuthUser authUser, long novelId, EpisodeCreateRequestDto requestDto) {
-        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
-        novelValidator.checkAuthority(authUser, novel);
-
-        Episode newEpisode = new Episode(novel, requestDto.getTitle(), requestDto.getAuthorReview(), requestDto.getContent(), getLastEpisodeNumber(novel));
-        episodeRepository.save(newEpisode);
-
-        return ResponseDto.of(HttpStatus.CREATED, "성공적으로 추가됐습니다.");
-    }
-
-    /**
-     * 에피소드 수정
-     * @param authUser
-     * @param novelId
-     * @param episodeId
-     * @param updateDto
-     * @return
-     */
-    @Override
-    public ResponseDto<Void> updateEpisode(AuthUser authUser, long novelId, long episodeId, EpisodeUpdateDto updateDto) {
-        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
-        Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
-        episode.update(updateDto);
-
-        novelValidator.checkAuthority(authUser, novel);
-
-        return ResponseDto.of(HttpStatus.OK, "성공적으로 수정됐습니다.");
-    }
-
-    /**
-     * 에피소드 삭제
-     * @param novelId
-     * @param episodeId
-     * @return
-     */
-    @Override
-    public ResponseDto<Void> deleteEpisode(long novelId, long episodeId) {
-        Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
-        Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
-        episodeRepository.delete(episode);
-        return ResponseDto.of(HttpStatus.OK, "성공적으로 삭제됐습니다.");
-    }
-
-    /**
-     * 마지막 회차 번호
-     * @param novel
-     * @return
-     */
-    private int getLastEpisodeNumber(Novel novel) {
-        return episodeRepository.countEpisodeByNovelId(novel.getId());
-    }
 
     /**
      * 총 추천 수
+     *
      * @param novel
      * @return
      */
@@ -229,6 +165,7 @@ public class NovelServiceImpl implements NovelService {
 
     /**
      * 총 조회 수
+     *
      * @param novel
      * @return
      */

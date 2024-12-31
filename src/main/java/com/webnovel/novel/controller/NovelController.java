@@ -4,10 +4,12 @@ import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.*;
 import com.webnovel.novel.entity.Novel;
+import com.webnovel.novel.service.EpisodeService;
 import com.webnovel.novel.service.NovelService;
 import com.webnovel.security.jwt.AuthUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +23,7 @@ import java.util.List;
 public class NovelController {
 
     private final NovelService novelService;
+    private final EpisodeService episodeService;
 
     // ---------------------
     //      소설 CRUD
@@ -49,6 +52,13 @@ public class NovelController {
                 .toEntity();
     }
 
+    @GetMapping("/{novelId}")
+    public ResponseEntity<ResponseDto<NovelDetailsDto>> getNovelList(
+            @PathVariable long novelId) {
+        return novelService.getNovelDetails(novelId)
+                .toEntity();
+    }
+
     @DeleteMapping("/{novelId}")
     public ResponseEntity<ResponseDto<Void>> deleteNovel(
             @AuthenticationPrincipal AuthUser authUser,
@@ -64,16 +74,5 @@ public class NovelController {
             @RequestBody NovelUpdateDto updateDto) {
         return novelService.updateNovel(authUser, novelId, updateDto)
                 .toEntity();
-    }
-
-
-    //-----------------------
-    //     에피 소드 CRUD
-    //-----------------------
-    @PostMapping("/{novelId}/episodes")
-    public ResponseEntity<ResponseDto<?>> registEpisode(
-            @PathVariable Long novelId,
-            @Validated @RequestBody EpisodeCreateRequestDto request) {
-        return null;
     }
 }
