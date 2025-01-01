@@ -7,6 +7,7 @@ import com.webnovel.novel.dto.EpisodeDetailsDto;
 import com.webnovel.novel.dto.EpisodeListDto;
 import com.webnovel.novel.dto.EpisodeUpdateDto;
 import com.webnovel.security.jwt.AuthUser;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface EpisodeService {
 
@@ -40,16 +41,10 @@ public interface EpisodeService {
     ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long episodeId);
     ResponseDto<EpisodeDetailsDto> getEpisodeDetails(AuthUser authUser, long episodeId);
 
-    long increaseViewCount(long episodeId) throws InterruptedException;
-    long increaseViewCountNoncache(long episodeId);
+    void increaseViewCount(AuthUser authUser, long episodeId, HttpServletRequest request);
     long getViewCount(long episodeId);
-    long getViewCountNoncache(long episodeId);
 
     // 추천수
     long increaseRecommendationCount(AuthUser user, long episodeId);
     long getRecommendationCount(long episodeId);
-
-    //TODO 테스트용
-    long increaseViewCountOptimisticLock(long episodeId);
-    long increaseViewCountPessimisticLock(long episodeId);
 }

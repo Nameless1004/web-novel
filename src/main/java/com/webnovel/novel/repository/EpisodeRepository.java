@@ -22,6 +22,11 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
                 .orElseThrow(() -> new NotFoundException("Episode not found"));
     }
 
+    default Episode findWithPessimisticLockByIdOrElseThrow(Long episodeId) {
+        return findByIdWithPessimisticLock(episodeId)
+                .orElseThrow(() -> new NotFoundException("Episode not found"));
+    }
+
     @Query("SELECT COALESCE(SUM(e.viewCount), 0) FROM Episode e WHERE e.novel.id = :novelId")
     long getTotalViewCount(@Param("novelId") Long novelId);
 

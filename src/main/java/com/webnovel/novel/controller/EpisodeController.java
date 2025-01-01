@@ -5,6 +5,7 @@ import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.novel.dto.*;
 import com.webnovel.novel.service.EpisodeService;
 import com.webnovel.security.jwt.AuthUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -56,12 +57,13 @@ public class EpisodeController {
     }
 
     @PatchMapping("/{novelId}/episodes/{episodeId}/views")
-    public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCount(
+    public ResponseEntity<ResponseDto<Void>> increaseViewCount(
             @PathVariable long novelId,
-            @PathVariable long episodeId) throws InterruptedException {
-
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseViewCount(episodeId)))
-                .toEntity();
+            @PathVariable long episodeId,
+            @AuthenticationPrincipal AuthUser authUser,
+            HttpServletRequest request) {
+        episodeService.increaseViewCount(authUser, episodeId, request);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{novelId}/episodes")
@@ -83,51 +85,6 @@ public class EpisodeController {
                 .toEntity();
     }
 
-    @PatchMapping("/{novelId}/episodes/{episodeId}/views/v2")
-    public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCountNoncache(
-            @PathVariable long novelId,
-            @PathVariable long episodeId) {
-
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseViewCountNoncache(episodeId)))
-                .toEntity();
-    }
-
-    /**
-     * 비관적 락 증가
-     * @param novelId
-     * @param episodeId
-     * @return
-     */
-    @PatchMapping("/{novelId}/episodes/{episodeId}/views/v3")
-    public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCountPessimistic(
-            @PathVariable long novelId,
-            @PathVariable long episodeId) {
-
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseViewCountPessimisticLock(episodeId)))
-                .toEntity();
-    }
-
-    /**
-     * 낙관적 락 증가
-     * @param novelId
-     * @param episodeId
-     * @return
-     */
-    @PatchMapping("/{novelId}/episodes/{episodeId}/views/v4")
-    public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCountOptimistic(
-            @PathVariable long novelId,
-            @PathVariable long episodeId) throws InterruptedException {
-
-        while(true) {
-            try {
-                long l = episodeService.increaseViewCountOptimisticLock(episodeId);
-                return ResponseDto.of(HttpStatus.OK, new ViewCountDto(l))
-                        .toEntity();
-            } catch (Exception e) {
-                Thread.sleep(50);
-            }
-        }
-    }
 
     @GetMapping("/{novelId}/episodes/{episodeId}/views")
     public ResponseEntity<ResponseDto<ViewCountDto>> getViewCount(
@@ -135,15 +92,6 @@ public class EpisodeController {
             @PathVariable long episodeId) {
 
         return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.getViewCount(episodeId)))
-                .toEntity();
-    }
-
-    @GetMapping("/{novelId}/episodes/{episodeId}/views/v2")
-    public ResponseEntity<ResponseDto<ViewCountDto>> getViewCountNoncache(
-            @PathVariable long novelId,
-            @PathVariable long episodeId) {
-
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.getViewCountNoncache(episodeId)))
                 .toEntity();
     }
 
