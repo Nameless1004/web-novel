@@ -58,7 +58,7 @@ public class EpisodeController {
     @PatchMapping("/{novelId}/episodes/{episodeId}/views")
     public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCount(
             @PathVariable long novelId,
-            @PathVariable long episodeId) {
+            @PathVariable long episodeId) throws InterruptedException {
 
         return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseViewCount(episodeId)))
                 .toEntity();
@@ -82,6 +82,7 @@ public class EpisodeController {
         return episodeService.getEpisodeDetails(authUser, episodeId)
                 .toEntity();
     }
+
     @PatchMapping("/{novelId}/episodes/{episodeId}/views/v2")
     public ResponseEntity<ResponseDto<ViewCountDto>> increaseViewCountNoncache(
             @PathVariable long novelId,
@@ -143,6 +144,24 @@ public class EpisodeController {
             @PathVariable long episodeId) {
 
         return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.getViewCountNoncache(episodeId)))
+                .toEntity();
+    }
+
+    @PatchMapping("/{novelId}/episodes/{episodeId}/recommendations")
+    public ResponseEntity<ResponseDto<ViewCountDto>> increaseRecommendationCount(
+            @PathVariable long novelId,
+            @PathVariable long episodeId,
+            @AuthenticationPrincipal AuthUser authUser ) {
+
+        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseRecommendationCount(authUser, episodeId)))
+                .toEntity();
+    }
+
+    @GetMapping("/{novelId}/episodes/{episodeId}/recommendations")
+    public ResponseEntity<ResponseDto<ViewCountDto>> getRecommendationCount(
+            @PathVariable long novelId,
+            @PathVariable long episodeId ) {
+        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.getRecommendationCount(episodeId)))
                 .toEntity();
     }
 }

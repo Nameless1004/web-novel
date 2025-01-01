@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.swing.text.html.Option;
+import java.util.Map;
 import java.util.Optional;
 
 public interface EpisodeRepository extends JpaRepository<Episode, Long>, EpisodeCustomRepository {
@@ -42,4 +43,16 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
     @Query("UPDATE Episode e SET e.episodeNumber = e.episodeNumber - 1 " +
     "WHERE e.novel.id = :novelId AND e.episodeNumber > :deletedEpisodeNumber")
     int updateEpisodeNumbersAfterDeletion(@Param("novelId") long novelId, @Param("deletedEpisodeNumber") int deletedEpisodeNumber);
+
+    @Query("SELECT e.recommendationCount FROM Episode e WHERE e.id =:id")
+    Optional<Long> findRecommendationCountById(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Episode e SET e.viewCount = :viewCount " +
+    "WHERE e.id = :episodeId")
+    void updateViewcount(@Param("episodeId") Long episodeId, @Param("viewCount") long viewCount);
+
+    default void batchUpdateViewcounts(Map<Long, Long> updates) {
+        updates.forEach(this::updateViewcount);
+    }
 }

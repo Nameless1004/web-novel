@@ -67,4 +67,8 @@ public class Episode extends Timestamped {
     public long increaseViewcount() {
         return ++this.viewCount;
     }
+
+    public long increaseRecommendationCount() {
+        return ++this.recommendationCount;
+    }
 }
