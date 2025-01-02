@@ -38,7 +38,7 @@ public interface EpisodeService {
      */
     ResponseDto<Void> deleteEpisode(AuthUser authUser, long novelId, long episodeId);
 
-    ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long episodeId);
+    ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long novelId);
     ResponseDto<EpisodeDetailsDto> getEpisodeDetails(AuthUser authUser, long episodeId);
 
     void increaseViewCount(AuthUser authUser, long episodeId, HttpServletRequest request);

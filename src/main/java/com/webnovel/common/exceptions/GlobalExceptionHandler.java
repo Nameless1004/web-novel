@@ -1,6 +1,7 @@
 package com.webnovel.common.exceptions;
 
 import com.webnovel.common.dto.ErrorResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -89,5 +90,10 @@ public class GlobalExceptionHandler {
 
         err.setData(errorMap);
         return err.toEntity();
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<String> handleTokenExpiredException(ExpiredJwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is expired");
     }
 }

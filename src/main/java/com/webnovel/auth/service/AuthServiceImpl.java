@@ -1,20 +1,18 @@
 package com.webnovel.auth.service;
 
-import com.webnovel.auth.dto.LoginRequestDto;
-import com.webnovel.auth.dto.LoginResponseDto;
-import com.webnovel.auth.dto.SignupRequestDto;
-import com.webnovel.auth.dto.SignupResponseDto;
+import com.webnovel.auth.dto.*;
+import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.common.exceptions.DuplicatedException;
 import com.webnovel.common.exceptions.InvalidRequestException;
 import com.webnovel.common.exceptions.NotFoundException;
+import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.security.jwt.JwtUtil;
 import com.webnovel.security.jwt.TokenType;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
         jwtUtil.addAccessTokenToHeader(accessToken, response);
         jwtUtil.addRefreshTokenToCookie(refreshToken, response);
 
-        return new LoginResponseDto(accessToken, accessToken);
+        return new LoginResponseDto(accessToken, refreshToken);
     }
 
     @Override
@@ -72,5 +70,28 @@ public class AuthServiceImpl implements AuthService {
         User save = userRepository.save(user);
 
         return new SignupResponseDto(save.getId());
+    }
+
+    @Override
+    public ResponseDto<ReissueResponseDto> reissue(ReissueRequestDto request) {
+        String token = request.getRefreshToken().substring(7);
+        if(!jwtUtil.validateToken(token)) {
+            throw new InvalidRequestException("Invalid refresh token");
+        }
+
+        if (!jwtUtil.getType(token).equals(TokenType.REFRESH.name())) {
+
+            throw new InvalidRequestException("Invalid refresh token");
+        }
+
+        String id = jwtUtil.getId(token);
+        String username = jwtUtil.getUsername(token);
+        String role = jwtUtil.getRole(token);
+
+        var access = jwtUtil.generateJwt(id, username, role, TokenType.ACCESS);
+        var refresh = jwtUtil.generateJwt(id, username, role, TokenType.REFRESH);
+
+
+        return ResponseDto.of(HttpStatus.OK ,new ReissueResponseDto(access, refresh));
     }
 }

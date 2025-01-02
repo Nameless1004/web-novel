@@ -1,9 +1,6 @@
 package com.webnovel.auth.controller;
 
-import com.webnovel.auth.dto.LoginRequestDto;
-import com.webnovel.auth.dto.LoginResponseDto;
-import com.webnovel.auth.dto.SignupRequestDto;
-import com.webnovel.auth.dto.SignupResponseDto;
+import com.webnovel.auth.dto.*;
 import com.webnovel.auth.service.AuthServiceImpl;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.security.jwt.AuthUser;
@@ -43,9 +40,9 @@ public class AuthController {
         return ResponseDto.of(HttpStatus.OK, signup).toEntity();
     }
 
-    @GetMapping("/test")
-    public String test( @AuthenticationPrincipal AuthUser authUser ) {
-        log.info(authUser.getUsername());
-        return "test";
+    @PostMapping("/auth/reissue")
+    public ResponseEntity<ResponseDto<ReissueResponseDto>> reissue(
+            @RequestBody ReissueRequestDto request) {
+        return authService.reissue(request).toEntity();
     }
 }

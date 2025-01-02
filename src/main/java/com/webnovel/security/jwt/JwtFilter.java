@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         log.info(":::Request URI::: [ {} ]", requestURI);
 
-        if(requestURI.startsWith("/api/auth/login") || requestURI.startsWith("/api/auth/signup")) {
+        if(requestURI.startsWith("/api/auth/login") || requestURI.startsWith("/api/auth/signup") || requestURI.startsWith("/api/auth/reissue")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -53,7 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
         // "Bearer " 제거
         String token = header.substring(7);
 
-        if(jwtUtil.isTokenExpired(token)) {
+        if(!jwtUtil.validateToken(token)) {
             log.warn("Token is expired");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is expired");
             return;

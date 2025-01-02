@@ -50,7 +50,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
                         episode.content,
                         episode.createdAt))
                 .from(novel)
-                .leftJoin(episode).on(episode.novel.id.eq(novel.id))
+                .innerJoin(episode).on(episode.novel.id.eq(novel.id))
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
                 .groupBy(episode.id)
                 .orderBy(episode.episodeNumber.asc())

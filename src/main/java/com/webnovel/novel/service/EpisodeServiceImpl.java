@@ -166,13 +166,13 @@ public class EpisodeServiceImpl implements EpisodeService {
      * 에피소드 목록 조회
      * @param page
      * @param size
-     * @param episodeId
+     * @param novelId
      * @return
      */
     @Override
-    public ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long episodeId) {
+    public ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long novelId) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        return ResponseDto.of(HttpStatus.OK, episodeRepository.getEpisodeLists(pageable, episodeId));
+        return ResponseDto.of(HttpStatus.OK, episodeRepository.getEpisodeLists(pageable, novelId));
     }
 
     /**

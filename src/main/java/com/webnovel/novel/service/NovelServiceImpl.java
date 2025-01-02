@@ -78,7 +78,10 @@ public class NovelServiceImpl implements NovelService {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         novelValidator.checkAuthority(authUser, novel);
         // 타이틀 중복 검사
-        novelValidator.checkDuplicatedNovelTitle(request.getTitle());
+        // 제목 그대로이면 중복검사 안하기
+        if(!novel.getTitle().equals(request.getTitle())) {
+            novelValidator.checkDuplicatedNovelTitle(request.getTitle());
+        }
 
         List<Tag> tags = tagRepository.findAllById(request.getTagIds());
         List<NovelTags> novelTags = tags.stream()

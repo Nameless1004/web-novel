@@ -1,6 +1,10 @@
 package com.webnovel.security.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +39,8 @@ public class JwtUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
     }
 
-    public Boolean isTokenExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+    public String getType(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("type", String.class);
     }
 
     public String generateJwt(String id, String username, String role, TokenType tokenType) {
@@ -44,6 +48,7 @@ public class JwtUtil {
                 .claim("id", id)
                 .claim("username", username)
                 .claim("role", role)
+                .claim("type", tokenType.toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenType.getLIFETIME_MS()))
                 .signWith(secretKey)
@@ -58,6 +63,32 @@ public class JwtUtil {
             setMaxAge((int)TokenType.REFRESH.getLIFETIME_MS() / 1000);  // 예: 7일 동안 유효
         }});
     }
+
+    public Claims getClaimsFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            return !isTokenExpired(token);  // 만료된 토큰이라면 false
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (SignatureException e) {
+            return false;
+        } catch (MalformedJwtException e) {
+            return false;
+        }
+    }
+
+    public boolean isTokenExpired(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.getExpiration().before(new java.util.Date());
+    }
+
 
     public void addAccessTokenToHeader(String accessToken, HttpServletResponse response) {
         response.addHeader("Authorization", accessToken);

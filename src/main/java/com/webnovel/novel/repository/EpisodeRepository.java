@@ -46,7 +46,7 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
 
     @Modifying
     @Query("UPDATE Episode e SET e.episodeNumber = e.episodeNumber - 1 " +
-    "WHERE e.novel.id = :novelId AND e.episodeNumber > :deletedEpisodeNumber")
+    "WHERE e.novel.id = :novelId AND e.episodeNumber >= :deletedEpisodeNumber")
     int updateEpisodeNumbersAfterDeletion(@Param("novelId") long novelId, @Param("deletedEpisodeNumber") int deletedEpisodeNumber);
 
     @Query("SELECT e.recommendationCount FROM Episode e WHERE e.id =:id")
