@@ -33,6 +33,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
         Long totalCount = queryFactory.select(episode.count())
                 .from(novel)
                 .leftJoin(episode).on(episode.novel.id.eq(novel.id))
+                .where(novel.id.eq(novelId))
                 .fetchFirst();
 
         if(totalCount == null || totalCount == 0) {
@@ -52,6 +53,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
                 .from(novel)
                 .innerJoin(episode).on(episode.novel.id.eq(novel.id))
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
+                .where(novel.id.eq(novelId))
                 .groupBy(episode.id)
                 .orderBy(episode.episodeNumber.asc())
                 .offset(pageable.getOffset())
@@ -66,7 +68,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
         QEpisode episode = QEpisode.episode;
         QComment comment = QComment.comment;
 
-        return Optional.ofNullable(jpaQueryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content))
+        return Optional.ofNullable(jpaQueryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
                 .from(episode)
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
                 .where(episode.id.eq(episodeId))

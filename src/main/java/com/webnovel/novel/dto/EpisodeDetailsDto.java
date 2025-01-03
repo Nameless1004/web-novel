@@ -19,4 +19,5 @@ public class EpisodeDetailsDto {
     private long commentCount;
     private String title;
     private String content;
+    private String authorReview;
 }
