@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         log.info(":::Request URI::: [ {} ]", requestURI);
 
-        if(requestURI.startsWith("/api/auth/login") || requestURI.startsWith("/api/auth/signup") || requestURI.startsWith("/api/auth/reissue")) {
+        if(requestURI.startsWith("/api/auth/") || requestURI.startsWith("/api/users/check")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -22,6 +22,7 @@ public class Novel {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
     private User author;
 
     private String title;

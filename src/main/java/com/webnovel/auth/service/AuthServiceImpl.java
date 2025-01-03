@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
         jwtUtil.addAccessTokenToHeader(accessToken, response);
         jwtUtil.addRefreshTokenToCookie(refreshToken, response);
 
-        return new LoginResponseDto(accessToken, refreshToken);
+        return new LoginResponseDto(user.getId(), accessToken, refreshToken);
     }
 
     @Override
@@ -91,7 +91,6 @@ public class AuthServiceImpl implements AuthService {
         var access = jwtUtil.generateJwt(id, username, role, TokenType.ACCESS);
         var refresh = jwtUtil.generateJwt(id, username, role, TokenType.REFRESH);
 
-
-        return ResponseDto.of(HttpStatus.OK ,new ReissueResponseDto(access, refresh));
+        return ResponseDto.of(HttpStatus.OK ,new ReissueResponseDto(Long.parseLong(id), access, refresh));
     }
 }

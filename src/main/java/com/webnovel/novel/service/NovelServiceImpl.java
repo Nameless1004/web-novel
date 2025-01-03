@@ -126,6 +126,17 @@ public class NovelServiceImpl implements NovelService {
         return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
     }
 
+    @Override
+    public ResponseDto<CustomPage<NovelListDto>> getMyNovelList(AuthUser authUser, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Novel> result = novelRepository.findAllByAuthorIdOrderByLastUpdatedAtDesc(authUser.getId(), pageable);
+        List<NovelListDto> list = result.getContent().stream()
+                .map(NovelListDto::new)
+                .toList();
+        return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
+    }
+
+
     /**
      * 선호 작품 등록
      *

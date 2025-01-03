@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReissueResponseDto {
 
+    private Long userId;
     private String accessToken;
     private String refreshToken;
 }

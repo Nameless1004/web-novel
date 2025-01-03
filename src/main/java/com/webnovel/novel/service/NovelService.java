@@ -50,6 +50,15 @@ public interface NovelService {
      * @return
      */
     ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
+
+    /**
+     * 내가 작성한 소설 목록 조회
+     * @param authUser
+     * @param page
+     * @param size
+     * @return
+     */
+    ResponseDto<CustomPage<NovelListDto>> getMyNovelList(AuthUser authUser, int page, int size);
     /**
      * 알림 등록
      * @param authUser
