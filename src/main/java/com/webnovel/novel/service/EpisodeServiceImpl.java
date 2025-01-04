@@ -9,10 +9,13 @@ import com.webnovel.novel.dto.EpisodeDetailsDto;
 import com.webnovel.novel.dto.EpisodeListDto;
 import com.webnovel.novel.dto.EpisodeUpdateDto;
 import com.webnovel.novel.entity.Episode;
+import com.webnovel.novel.entity.EpisodeViewLog;
 import com.webnovel.novel.entity.Novel;
 import com.webnovel.novel.repository.EpisodeRepository;
+import com.webnovel.novel.repository.EpisodeViewLogRepository;
 import com.webnovel.novel.repository.NovelRepository;
 import com.webnovel.security.jwt.AuthUser;
+import com.webnovel.user.entity.User;
 import io.jsonwebtoken.lang.Strings;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -43,6 +47,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     private final NovelRepository novelRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedissonClient redissonClient;
+    private final EpisodeViewLogRepository episodeViewLogRepository;
 
     /**
      * 조회수 증가
@@ -63,6 +68,10 @@ public class EpisodeServiceImpl implements EpisodeService {
         if(redisTemplate.opsForValue().setIfAbsent(checkKey, "#",ttl, TimeUnit.SECONDS)) {
             var episode = episodeRepository.findByIdWithPessimisticLock(episodeId)
                     .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
+
+            // 로깅
+            stampViewLog(authUser.toUserEntity(), episode);
+
             long updatedViewCount = episode.increaseViewcount();
             redisTemplate.opsForValue().set("viewCount::" + episodeId, updatedViewCount);
         }
@@ -101,6 +110,18 @@ public class EpisodeServiceImpl implements EpisodeService {
     public long getRecommendationCount(long episodeId) {
         return episodeRepository.findRecommendationCountById(episodeId)
                 .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
+    }
+
+    /**
+     * 조회수 증가시 로깅
+     * @param user
+     * @param episode
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void stampViewLog(User user, Episode episode) {
+        EpisodeViewLog log = new EpisodeViewLog(user, episode);
+        episodeViewLogRepository.save(log);
     }
 
     /**

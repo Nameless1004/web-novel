@@ -6,7 +6,9 @@ import com.webnovel.novel.dto.*;
 import com.webnovel.novel.service.EpisodeService;
 import com.webnovel.novel.service.NovelService;
 import com.webnovel.security.jwt.AuthUser;
+import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -60,6 +62,22 @@ public class NovelController {
             @RequestParam int size) {
         return novelService.getMyNovelList(authUser, page, size)
                 .toEntity();
+    }
+
+    /**
+     * 인기 작품
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("/novels/hot")
+    public ResponseEntity<ResponseDto<CustomPage<HotNovelResponseDto>>> getHotNovelList(
+            @RequestParam(required = true, defaultValue = "view") String option,
+            @Range(min = 0, max= 23, message = "시간은 0시보다 작거나 23시보다 클 수 없습니다.")
+            @RequestParam(required = true) int hour,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return novelService.getRealtimeHotNovels(option,hour, page, size).toEntity();
     }
 
     @GetMapping("/novels/{novelId}")

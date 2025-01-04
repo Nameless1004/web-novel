@@ -21,7 +21,6 @@ import java.util.Optional;
 public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public CustomPage<EpisodeListDto> getEpisodeLists(Pageable pageable, long novelId) {
@@ -68,7 +67,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
         QEpisode episode = QEpisode.episode;
         QComment comment = QComment.comment;
 
-        return Optional.ofNullable(jpaQueryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
+        return Optional.ofNullable(queryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
                 .from(episode)
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
                 .where(episode.id.eq(episodeId))

@@ -1,5 +1,6 @@
 package com.webnovel.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true) // isFirst, isLast 직렬화 문제있어서 추가
 public class CustomPage<T> {
     private List<T> content;        // 현재 페이지의 데이터 리스트
     private int pageNumber;         // 현재 페이지 번호

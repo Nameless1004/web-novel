@@ -51,6 +51,8 @@ public interface NovelService {
      */
     ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
 
+    ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size);
+
     /**
      * 내가 작성한 소설 목록 조회
      * @param authUser

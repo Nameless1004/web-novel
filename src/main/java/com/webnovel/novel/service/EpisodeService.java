@@ -6,7 +6,9 @@ import com.webnovel.novel.dto.EpisodeCreateRequestDto;
 import com.webnovel.novel.dto.EpisodeDetailsDto;
 import com.webnovel.novel.dto.EpisodeListDto;
 import com.webnovel.novel.dto.EpisodeUpdateDto;
+import com.webnovel.novel.entity.Episode;
 import com.webnovel.security.jwt.AuthUser;
+import com.webnovel.user.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface EpisodeService {
@@ -47,4 +49,6 @@ public interface EpisodeService {
     // 추천수
     long increaseRecommendationCount(AuthUser user, long episodeId);
     long getRecommendationCount(long episodeId);
+
+    void stampViewLog(User user, Episode episodeId);
 }

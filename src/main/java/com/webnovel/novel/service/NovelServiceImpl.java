@@ -11,6 +11,7 @@ import com.webnovel.security.jwt.AuthUser;
 import com.webnovel.user.entity.User;
 import com.webnovel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -124,6 +126,14 @@ public class NovelServiceImpl implements NovelService {
                 .toList();
 
         return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
+    }
+
+    @Override
+    @Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
+    public ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size) {
+        CustomPage<HotNovelResponseDto> realtimeHotNovelList = novelRepository.getRealtimeHotNovelList(option, hour, PageRequest.of(page - 1, size));
+        log.info("Cache Miss");
+        return ResponseDto.of(HttpStatus.OK, realtimeHotNovelList);
     }
 
     @Override
