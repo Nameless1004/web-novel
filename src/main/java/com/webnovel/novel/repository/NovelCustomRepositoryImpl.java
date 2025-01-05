@@ -95,14 +95,14 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                 return new CustomPage<>(new ArrayList<HotNovelResponseDto>(), pageable, 0);
             }
 
-            List<Tuple> tuples = queryFactory.select(novel, episodeViewLog.count())
-                    .from(novel)
-                    .innerJoin(episode).on(novel.id.eq(episode.novel.id))
-                    .innerJoin(episodeViewLog).on(episode.eq(episodeViewLog.episode))
-                    .innerJoin(user).on(user.id.eq(user.id))
+
+            List<Tuple> tuples = queryFactory.select(novel, novel.id.count())
+                    .from(episodeViewLog)
+                    .leftJoin(episodeViewLog.novel, novel)
+                    .leftJoin( novel.author, QUser.user)
                     .where(episodeViewLog.hour.eq(hour))
                     .groupBy(novel.id)
-                    .orderBy(episodeViewLog.count().desc())
+                    .orderBy(novel.id.count().desc())
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetch();
@@ -116,10 +116,11 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                     .where(novel.id.in(novelIds))
                     .fetch()
                     .stream()
-                    .collect(Collectors.groupingBy(tuple -> tuple.get(novelTags.novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
+                    .collect(Collectors.groupingBy(tuple -> tuple.get(
+                            novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
 
             List<HotNovelResponseDto> list = tuples.stream()
-                    .map(x -> (new HotNovelResponseDto(x.get(episodeViewLog.count()), x.get(novel), collect.get(x.get(novel).getId()))))
+                    .map(x -> (new HotNovelResponseDto(x.get(novel.id.count()), x.get(novel), collect.get(x.get(novel).getId()))))
                     .toList();
 
             return new CustomPage<>(list, pageable, totalCount);

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -42,8 +43,7 @@ public class NovelServiceImpl implements NovelService {
     private final TagRepository tagRepository;
     private final NovelValidator novelValidator;
     private final NovelTagRepository novelTagRepository;
-
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public ResponseDto<NovelCreateResponseDto> createNovel(AuthUser authUser, NovelCreateRequestDto request) {
@@ -65,6 +65,8 @@ public class NovelServiceImpl implements NovelService {
         List<String> tagNames = tags.stream()
                 .map(Tag::getName)
                 .toList();
+
+        eventPublisher.publishEvent(new NovelStatusChangedEvent(savedNovel));
 
         return ResponseDto.of(HttpStatus.CREATED,
                 NovelCreateResponseDto.builder()
@@ -90,12 +92,22 @@ public class NovelServiceImpl implements NovelService {
                 .map(x -> new NovelTags(novel, x))
                 .toList();
 
+        // event
+
         novelTagRepository.deleteAllByNovel(novel);
         List<NovelTags> newTags = novelTagRepository.saveAllAndFlush(novelTags);
         novel.update(request, newTags);
+        NovelStatus prevStatus = novel.getStatus();
+        Novel updatedNovel = novelRepository.save(novel);
+
+        // 이전 상태와 다르면 로깅
+        if(prevStatus != updatedNovel.getStatus()) {
+            eventPublisher.publishEvent(new NovelStatusChangedEvent(updatedNovel));
+        }
 
         return ResponseDto.of(HttpStatus.OK, "성공적으로 수정 됐습니다.");
     }
+
 
     @Override
     public ResponseDto<Void> deleteNovel(AuthUser authUser, long novelId) {
@@ -129,7 +141,7 @@ public class NovelServiceImpl implements NovelService {
     }
 
     @Override
-    @Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
+    //@Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
     public ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size) {
         CustomPage<HotNovelResponseDto> realtimeHotNovelList = novelRepository.getRealtimeHotNovelList(option, hour, PageRequest.of(page - 1, size));
         log.info("Cache Miss");

@@ -66,7 +66,7 @@ public class EpisodeServiceImpl implements EpisodeService {
         long ttl = getSecondUntilMidnight();
 
         if(redisTemplate.opsForValue().setIfAbsent(checkKey, "#",ttl, TimeUnit.SECONDS)) {
-            var episode = episodeRepository.findByIdWithPessimisticLock(episodeId)
+            var episode = episodeRepository.findWithNovelByIdWithPessimisticLock(episodeId)
                     .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
 
             // 로깅

@@ -2,6 +2,7 @@ package com.webnovel.novel.repository;
 
 import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.novel.entity.Episode;
+import com.webnovel.novel.entity.Novel;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.persistence.Id;
 import jakarta.persistence.LockModeType;
@@ -44,6 +45,10 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
     @Query("SELECT e FROM Episode e WHERE e.id=:id")
     Optional<Episode> findByIdWithPessimisticLock(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Episode e JOIN FETCH e.novel WHERE e.id=:id")
+    Optional<Episode> findWithNovelByIdWithPessimisticLock(@Param("id") Long id);
+
     @Modifying
     @Query("UPDATE Episode e SET e.episodeNumber = e.episodeNumber - 1 " +
     "WHERE e.novel.id = :novelId AND e.episodeNumber >= :deletedEpisodeNumber")
@@ -60,4 +65,6 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long>, Episode
     default void batchUpdateViewcounts(Map<Long, Long> updates) {
         updates.forEach(this::updateViewcount);
     }
+
+    boolean existsByNovel(Novel novel1);
 }

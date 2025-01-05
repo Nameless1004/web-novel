@@ -72,11 +72,11 @@ public class NovelController {
      */
     @GetMapping("/novels/hot")
     public ResponseEntity<ResponseDto<CustomPage<HotNovelResponseDto>>> getHotNovelList(
-            @RequestParam(required = true, defaultValue = "view") String option,
+            @RequestParam(required = false, defaultValue = "view") String option,
             @Range(min = 0, max= 23, message = "시간은 0시보다 작거나 23시보다 클 수 없습니다.")
             @RequestParam(required = true) int hour,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
         return novelService.getRealtimeHotNovels(option,hour, page, size).toEntity();
     }
 
