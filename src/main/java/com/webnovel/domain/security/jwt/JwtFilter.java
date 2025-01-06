@@ -28,6 +28,11 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         log.info(":::Request URI::: [ {}:{} ]", method, requestURI);
 
+        if(requestURI.startsWith("/health")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if(requestURI.startsWith("/api/auth/") || requestURI.startsWith("/api/users/check")) {
             filterChain.doFilter(request, response);
             return;
