@@ -1,33 +1,28 @@
 package com.webnovel.novel.service;
 
-import com.webnovel.novel.entity.Episode;
-import com.webnovel.novel.entity.EpisodeViewLog;
-import com.webnovel.novel.entity.Novel;
-import com.webnovel.novel.enums.EpisodeStatus;
-import com.webnovel.novel.enums.NovelStatus;
-import com.webnovel.novel.repository.EpisodeRepository;
-import com.webnovel.novel.repository.EpisodeViewLogRepository;
-import com.webnovel.novel.repository.NovelRepository;
-import com.webnovel.security.jwt.AuthUser;
-import com.webnovel.user.entity.User;
-import com.webnovel.user.repository.UserRepository;
+import com.webnovel.domain.novel.entity.Episode;
+import com.webnovel.domain.novel.entity.EpisodeViewLog;
+import com.webnovel.domain.novel.entity.Novel;
+import com.webnovel.domain.novel.enums.EpisodeStatus;
+import com.webnovel.domain.novel.enums.NovelStatus;
+import com.webnovel.domain.novel.repository.EpisodeRepository;
+import com.webnovel.domain.novel.repository.EpisodeViewLogRepository;
+import com.webnovel.domain.novel.repository.NovelRepository;
+import com.webnovel.domain.user.entity.User;
+import com.webnovel.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Rollback(value = false)
