@@ -37,6 +37,7 @@ jobs:
           key: ${{secrets.PRIVATE_KEY}}
           port: 22
           scripts: |
+            whoami
             mkdir -p ./config
             echo "${{secrets.ENVS}}" > ./config/.env
             docker ps 
