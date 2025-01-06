@@ -41,6 +41,7 @@ jobs:
             echo "${{secrets.ENVS}}" > ./config/.env
             docker ps 
             docker container stop app
+            docker container rm app
             docker pull ${{ secrets.DOCKER_USERNAME }}/fictionholic
             docker run -d -p 8080:8080 --env-file ~/config/.env -e TZ=Asia/Seoul --name app ${{ secrets.DOCKER_USERNAME }}/fictionholic
             docker image prune -f
