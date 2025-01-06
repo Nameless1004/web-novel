@@ -42,5 +42,5 @@ jobs:
             docker ps 
             docker container stop app
             docker pull ${{ secrets.DOCKER_USERNAME }}/fictionholic
-            docker run -d -p 8080:8080 --env-file ./config/.env -e TZ=Asia/Seoul --name app ${{ secrets.DOCKER_USERNAME }}/fictionholic
+            docker run -d -p 8080:8080 --env-file ~/config/.env -e TZ=Asia/Seoul --name app ${{ secrets.DOCKER_USERNAME }}/fictionholic
             docker image prune -f
