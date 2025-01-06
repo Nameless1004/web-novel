@@ -30,14 +30,13 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/fictionholic .
           docker push ${{ secrets.DOCKER_USERNAME }}/fictionholic
       - name: Deploy
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{secrets.EC2_IP}}
           username: ubuntu
           key: ${{secrets.PRIVATE_KEY}}
           port: 22
           scripts: |
-            whoami
             mkdir -p ./config
             echo "${{secrets.ENVS}}" > ./config/.env
             docker ps 
