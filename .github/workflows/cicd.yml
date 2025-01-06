@@ -37,7 +37,11 @@ jobs:
           key: ${{secrets.PRIVATE_KEY}}
           port: 22
           scripts: |
-            sudo docker ps
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/fictionholic
-            sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/fictionholic
-            sudo docker image prune -f
+            mkdir -p ./config
+            echo "${{secrets.ENVS}}" > ./config/.env
+            docker ps 
+            docker container stop app
+            docker container rm app
+            docker system prune -a -f
+            docker pull ${{ secrets.DOCKER_USERNAME }}/fictionholic
+            docker run -d -p 8080:8080 --env-file ./config/.env -e TZ=Asia/Seoul --name app ${{ secrets.DOCKER_USERNAME }}/fictionholic
