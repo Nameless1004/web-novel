@@ -137,7 +137,7 @@ public class NovelServiceImpl implements NovelService {
 
     @ExecutionTimeLog
     @Override
-    @Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
+   // @Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
     public ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size) {
         CustomPage<HotNovelResponseDto> realtimeHotNovelList = novelRepository.getRealtimeHotNovelList(option, hour, PageRequest.of(page - 1, size));
         log.info("Cache Miss");

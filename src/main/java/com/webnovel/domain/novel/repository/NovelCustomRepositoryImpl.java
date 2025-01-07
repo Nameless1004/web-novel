@@ -25,10 +25,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.webnovel.domain.novel.entity.QNovel.novel;
@@ -85,7 +82,11 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                         Collectors.toList())));
 
         for (NovelListDto novelListDto : content) {
-            novelListDto.setTags(tags.get(novelListDto.getNovelId()));
+            if(!tags.containsKey(novelListDto.getNovelId())) {
+                novelListDto.setTags(new ArrayList<>());
+            } else {
+                novelListDto.setTags(tags.get(novelListDto.getNovelId()));
+            }
         }
 
         return new CustomPage<>(content, pageable, totalCount);
@@ -173,7 +174,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
             LocalDateTime startOfDay = today.atStartOfDay();
             LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
-            List<Tuple> tuples = queryFactory.select(novel, novel.id.count())
+            List<Tuple> results = queryFactory.select(novel, novel.id.count())
                     .from(episodeViewLog)
                     .innerJoin(episodeViewLog.novel, novel)
                     .innerJoin( novel.author, QUser.user)
@@ -184,22 +185,39 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                     .limit(pageable.getPageSize())
                     .fetch();
 
-            List<Long> novelIds = tuples.stream().map(x->x.get(novel).getId()).toList();
+            List<Long> novelIds = results.stream().map(x->x.get(novel).getId()).toList();
 
-            Map<Long, List<String>> collect = queryFactory.select(novelTags.novel.id, tag.name)
-                    .from(novelTags)
-                    .join(novelTags.novel, novel)
-                    .join(novelTags.tag, tag)
+            List<Tuple> fetch = queryFactory.select(novel.id, tag.name)
+                    .from(novel)
+                    .innerJoin(novel.tags, novelTags)
+                    .innerJoin(novelTags.tag, tag)
                     .where(novel.id.in(novelIds))
-                    .fetch()
-                    .stream()
-                    .collect(Collectors.groupingBy(tuple -> tuple.get(novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
+                    .fetch();
 
-            List<HotNovelResponseDto> list = tuples.stream()
-                    .map(x -> (new HotNovelResponseDto(x.get(novel.id.count()), x.get(novel), collect.get(x.get(novel).getId()))))
-                    .toList();
+            HashMap<Long, List<String>> map = new HashMap<>();
 
-            return new CustomPage<>(list, pageable, totalCount);
+            for(Tuple tup : fetch) {
+                Long n = tup.get(novel.id);
+                String t = tup.get(tag.name);
+                if(!map.containsKey(n)) {
+                    map.put(n, new ArrayList<>());
+                }
+
+                map.get(n).add(t);
+            }
+
+            List<HotNovelResponseDto> content = new ArrayList<>();
+           for (Tuple tup : results) {
+               Novel n = tup.get(novel);
+               long count = tup.get(novel.id.count());
+               if(!map.containsKey(n.getId())) {
+                   content.add(new HotNovelResponseDto(count, n, new ArrayList<>()));
+               } else {
+                    content.add(new HotNovelResponseDto(count, n, map.get(n.getId())));
+               }
+           }
+
+            return new CustomPage<>(content, pageable, totalCount);
         } else if(option.equals("recommendation")) {
 
         } else {
