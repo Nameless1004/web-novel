@@ -1,9 +1,11 @@
 package com.webnovel.domain.novel.repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.DateTemplate;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -165,16 +168,15 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                 return new CustomPage<>(new ArrayList<HotNovelResponseDto>(), pageable, 0);
             }
 
+            LocalDate today = LocalDate.now();
+            LocalDateTime startOfDay = today.atStartOfDay();
+            LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
             List<Tuple> tuples = queryFactory.select(novel, novel.id.count())
                     .from(episodeViewLog)
-                    .leftJoin(episodeViewLog.novel, novel)
-                    .leftJoin( novel.author, QUser.user)
-                    .where(
-                            episodeViewLog.hour.eq(hour).and(
-                            Expressions.dateTemplate(Date.class, "DATE({0})", episodeViewLog.timestamp)
-                                    .eq(Date.valueOf(LocalDate.now())))
-                    )
+                    .innerJoin(episodeViewLog.novel, novel)
+                    .innerJoin( novel.author, QUser.user)
+                    .where(episodeViewLog.hour.eq(hour).and(episodeViewLog.timestamp.between(startOfDay, endOfDay)))
                     .groupBy(novel.id)
                     .orderBy(novel.id.count().desc())
                     .offset(pageable.getOffset())
@@ -190,8 +192,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                     .where(novel.id.in(novelIds))
                     .fetch()
                     .stream()
-                    .collect(Collectors.groupingBy(tuple -> tuple.get(
-                            novelTags.novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
+                    .collect(Collectors.groupingBy(tuple -> tuple.get(novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
 
             List<HotNovelResponseDto> list = tuples.stream()
                     .map(x -> (new HotNovelResponseDto(x.get(novel.id.count()), x.get(novel), collect.get(x.get(novel).getId()))))
