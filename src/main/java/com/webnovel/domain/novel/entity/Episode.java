@@ -46,6 +46,9 @@ public class Episode extends Timestamped {
     private Novel novel;
 
     @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EpisodeViewLog> episodeViewLogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     public Episode(Novel novel, String title, String authorReview, String content, int episodeNumber) {

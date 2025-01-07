@@ -111,8 +111,9 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
         QEpisode episode = QEpisode.episode;
         List<String> tags = queryFactory.select(tag.name)
                 .from(novelTags)
-                .join(novelTags.novel, novel)
-                .join(novelTags.tag, tag)
+                .innerJoin(novelTags.novel, novel)
+                .innerJoin(novelTags.tag, tag)
+                .where(novelTags.novel.id.eq(novelId))
                 .fetch();
 
         NovelDetailsDto novelDetailsDto = queryFactory.select(Projections.constructor(NovelDetailsDto.class,

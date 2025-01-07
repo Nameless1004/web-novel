@@ -37,6 +37,12 @@ public class Novel {
     private LocalDateTime lastUpdatedAt;
 
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Episode> episodes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NovelEventLog> eventLogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NovelTags> tags = new ArrayList<>();
 
 

@@ -93,18 +93,18 @@ public class EpisodeController {
     }
 
     @PatchMapping("/episodes/{episodeId}/recommendations")
-    public ResponseEntity<ResponseDto<ViewCountDto>> increaseRecommendationCount(
+    public ResponseEntity<ResponseDto<RecommendationCount>> increaseRecommendationCount(
             @PathVariable long episodeId,
             @AuthenticationPrincipal AuthUser authUser ) {
 
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.increaseRecommendationCount(authUser, episodeId)))
+        return ResponseDto.of(HttpStatus.OK, new RecommendationCount(episodeService.increaseRecommendationCount(authUser, episodeId)))
                 .toEntity();
     }
 
     @GetMapping("/episodes/{episodeId}/recommendations")
-    public ResponseEntity<ResponseDto<ViewCountDto>> getRecommendationCount(
+    public ResponseEntity<ResponseDto<RecommendationCount>> getRecommendationCount(
             @PathVariable long episodeId ) {
-        return ResponseDto.of(HttpStatus.OK, new ViewCountDto(episodeService.getRecommendationCount(episodeId)))
+        return ResponseDto.of(HttpStatus.OK, new RecommendationCount(episodeService.getRecommendationCount(episodeId)))
                 .toEntity();
     }
 }

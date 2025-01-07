@@ -81,7 +81,7 @@ public class NovelController {
     }
 
     @GetMapping("/novels/{novelId}")
-    public ResponseEntity<ResponseDto<NovelDetailsDto>> getNovelList(
+    public ResponseEntity<ResponseDto<NovelDetailsDto>> getNovelDetails(
             @PathVariable long novelId) {
         return novelService.getNovelDetails(novelId)
                 .toEntity();
