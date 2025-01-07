@@ -19,7 +19,6 @@ import com.webnovel.domain.user.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
@@ -45,7 +44,6 @@ public class EpisodeServiceImpl implements EpisodeService {
     private final NovelValidator novelValidator;
     private final NovelRepository novelRepository;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RedissonClient redissonClient;
     private final EpisodeViewLogRepository episodeViewLogRepository;
 
     /**
