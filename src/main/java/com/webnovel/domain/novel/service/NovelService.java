@@ -44,7 +44,7 @@ public interface NovelService {
      * @param size
      * @return
      */
-    ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size);
+    ResponseDto<CustomPage<NovelListDto>> getNovelList(String orderby, String direction, int page, int size);
 
     ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size);
 

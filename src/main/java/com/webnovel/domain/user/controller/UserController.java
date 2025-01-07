@@ -4,9 +4,11 @@ import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.domain.security.jwt.AuthUser;
 import com.webnovel.domain.user.dto.DuplicatedResponseDto;
 import com.webnovel.domain.user.dto.NicknameUpdateRequestDto;
+import com.webnovel.domain.user.dto.UserProfileResponseDto;
 import com.webnovel.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,5 +41,10 @@ public class UserController {
     @GetMapping("/check/email")
     public ResponseEntity<ResponseDto<DuplicatedResponseDto>> checkEmail(@RequestParam String email) {
         return userService.checkEmail(email).toEntity();
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ResponseDto<UserProfileResponseDto>> getProfile(@AuthenticationPrincipal AuthUser authUser) {
+        return userService.getProfile(authUser).toEntity();
     }
 }

@@ -1,14 +1,19 @@
 package com.webnovel.domain.novel.repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.exceptions.InvalidRequestException;
+import com.webnovel.domain.comment.entity.QComment;
 import com.webnovel.domain.novel.dto.HotNovelResponseDto;
 import com.webnovel.domain.novel.dto.NovelDetailsDto;
+import com.webnovel.domain.novel.dto.NovelListDto;
+import com.webnovel.domain.novel.dto.NovelOrderCondition;
 import com.webnovel.domain.novel.entity.*;
 import com.webnovel.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +28,75 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.webnovel.domain.novel.entity.QNovel.novel;
+import static com.webnovel.domain.novel.entity.QNovelTags.novelTags;
+import static com.webnovel.domain.novel.entity.QTag.tag;
+
 @Repository
 @RequiredArgsConstructor
 public class NovelCustomRepositoryImpl implements NovelCustomRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EpisodeViewLogRepository episodeViewLogRepository;
+
+    @Override
+    public CustomPage<NovelListDto> getNovelList(NovelOrderCondition orderCondition, Order order, Pageable pageable) {
+        if(order == null || orderCondition == null) {
+            throw new InvalidRequestException("잘못된 order 파라미터입니다.");
+        }
+
+        OrderSpecifier[] orderSpecifier = createOrderSpecifier(orderCondition, order);
+
+        Long totalCount = queryFactory.select(novel.count())
+                .from(novel).fetchFirst();
+
+        if(totalCount == null) {
+            return new CustomPage<>(new ArrayList<NovelListDto>(), pageable, 0);
+        }
+
+        List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt))
+                .from(novel)
+                .innerJoin(novel.author, QUser.user)
+                .orderBy(orderSpecifier)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        List<Long> novelIds = content.stream().map(NovelListDto::getNovelId).toList();
+        List<Tuple> z = queryFactory.select(novelTags.novel.id, tag.name)
+                .from(novelTags)
+                .join(novelTags.novel, novel)
+                .join(novelTags.tag, tag)
+                .where(novel.id.in(novelIds))
+                .fetch();
+        Map<Long, List<String>> tags = queryFactory.select(novelTags.novel.id, tag.name)
+                .from(novelTags)
+                .join(novelTags.novel, novel)
+                .join(novelTags.tag, tag)
+                .where(novel.id.in(novelIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.groupingBy(tuple ->
+                        tuple.get(novelTags.novel.id),
+                        Collectors.mapping(tuple -> tuple.get(tag.name),
+                        Collectors.toList())));
+
+        for (NovelListDto novelListDto : content) {
+            novelListDto.setTags(tags.get(novelListDto.getNovelId()));
+        }
+
+        return new CustomPage<>(content, pageable, totalCount);
+    }
+
+    private OrderSpecifier[] createOrderSpecifier(NovelOrderCondition orderCondition, Order order) {
+        List<OrderSpecifier> orderSpecifiers = new ArrayList<>();
+
+        if(orderCondition.equals(NovelOrderCondition.NEW)) {
+            orderSpecifiers.add(new OrderSpecifier(order, novel.publishedAt));
+        }
+
+        return orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]);
+    }
 
     @Override
     public Optional<NovelDetailsDto> getNovelDetails(long novelId) {
@@ -63,7 +131,12 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                                 .where(episode.novel.eq(novel)),
                         JPAExpressions.select(episode.count())
                                 .from(episode)
-                                .where(episode.novel.eq(novel))
+                                .where(episode.novel.eq(novel)),
+                        JPAExpressions.select(QComment.comment.id.count())
+                                .from(QComment.comment)
+                                .innerJoin(QComment.comment.episode, episode)
+                                .innerJoin(episode.novel, novel)
+                                .where(novel.id.eq(novelId))
                 ))
                 .from(novel)
                 .join(novel.author, QUser.user)
@@ -118,7 +191,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                     .fetch()
                     .stream()
                     .collect(Collectors.groupingBy(tuple -> tuple.get(
-                            novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
+                            novelTags.novel.id), Collectors.mapping(tuple -> tuple.get(tag.name), Collectors.toList())));
 
             List<HotNovelResponseDto> list = tuples.stream()
                     .map(x -> (new HotNovelResponseDto(x.get(novel.id.count()), x.get(novel), collect.get(x.get(novel).getId()))))

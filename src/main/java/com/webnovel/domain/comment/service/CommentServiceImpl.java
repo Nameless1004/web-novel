@@ -1,5 +1,6 @@
 package com.webnovel.domain.comment.service;
 
+import com.webnovel.common.exceptions.InvalidRequestException;
 import com.webnovel.domain.comment.dto.CommentCreateDto;
 import com.webnovel.domain.comment.dto.CommentDetailsDto;
 import com.webnovel.domain.comment.dto.CommentUpdateDto;
@@ -36,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
 
         return ResponseDto.of(HttpStatus.CREATED,
                 CommentDetailsDto.builder()
+                    .userId(authUser.getId())
                     .authorUserName(authUser.getUsername())
                     .content(content)
                     .commentedAt(comment.getCommentedAt())
@@ -53,6 +55,7 @@ public class CommentServiceImpl implements CommentService {
 
         return ResponseDto.of(HttpStatus.CREATED,
                 CommentDetailsDto.builder()
+                        .userId(authUser.getId())
                         .authorUserName(authUser.getUsername())
                         .content(content)
                         .commentedAt(comment.getCommentedAt())
@@ -76,6 +79,7 @@ public class CommentServiceImpl implements CommentService {
                 .stream()
                 .map(x -> CommentDetailsDto.builder()
                         .id(x.getId())
+                        .userId(x.getUser().getId())
                         .commentedAt(x.getCommentedAt())
                         .content(x.getContent())
                         .authorUserName(x.getUser().getUsername())

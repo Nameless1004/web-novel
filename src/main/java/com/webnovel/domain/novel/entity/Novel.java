@@ -31,7 +31,9 @@ public class Novel {
     @Enumerated(EnumType.STRING)
     private NovelStatus status;
 
+    @Column(name = "published_at")
     private LocalDateTime publishedAt;
+    @Column(name = "last_updated_at")
     private LocalDateTime lastUpdatedAt;
 
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -44,6 +46,7 @@ public class Novel {
         this.synopsis = synopsis;
         this.status = status;
         this.publishedAt = publishedAt;
+        this.lastUpdatedAt = publishedAt;
     }
 
     private void updateLastUpdatedAt() {

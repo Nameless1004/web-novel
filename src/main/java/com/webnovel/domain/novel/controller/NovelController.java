@@ -40,9 +40,11 @@ public class NovelController {
 
     @GetMapping("/novels")
     public ResponseEntity<ResponseDto<CustomPage<NovelListDto>>> getNovelList(
+            @RequestParam String orderby,
+            @RequestParam String direction,
             @RequestParam int page,
             @RequestParam int size) {
-        return novelService.getNovelList(page, size)
+        return novelService.getNovelList(orderby, direction, page, size)
                 .toEntity();
     }
 

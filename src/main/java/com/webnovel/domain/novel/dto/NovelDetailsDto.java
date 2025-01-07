@@ -21,10 +21,11 @@ public class NovelDetailsDto {
     private long totalViewCount;
     private long totalRecommendationCount;
     private long totalEpisodeCount;
+    private long totalCommentCount;
 
     public NovelDetailsDto(Long id, String title, String synopsis, String authorNickname,
                            long totalSubscriberCount, long totalPreferenceCount, long totalViewCount,
-                           long totalRecommendationCount, long totalEpisodeCount) {
+                           long totalRecommendationCount, long totalEpisodeCount, long totalCommentCount) {
         this.id = id;
         this.title = title;
         this.synopsis = synopsis;
@@ -35,6 +36,7 @@ public class NovelDetailsDto {
         this.totalViewCount = totalViewCount;
         this.totalRecommendationCount = totalRecommendationCount;
         this.totalEpisodeCount = totalEpisodeCount;
+        this.totalCommentCount = totalCommentCount;
     }
 
     public void addTag(List<String> tag) {

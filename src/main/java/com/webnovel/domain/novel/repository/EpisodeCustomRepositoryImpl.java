@@ -66,12 +66,37 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
     public Optional<EpisodeDetailsDto> getEpisode(long episodeId) {
         QEpisode episode = QEpisode.episode;
         QComment comment = QComment.comment;
+        QNovel novel = QNovel.novel;
 
-        return Optional.ofNullable(queryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
+        EpisodeDetailsDto episodeDetailsDto = queryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, novel.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
                 .from(episode)
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
+                .innerJoin(episode.novel, novel)
                 .where(episode.id.eq(episodeId))
                 .groupBy(episode.id)
-                .fetchFirst());
+                .fetchFirst();
+
+        if(episodeDetailsDto == null) {
+            return Optional.empty();
+        }
+
+        Long previousEpisodeId = queryFactory
+                .select(episode.id)
+                .from(episode)
+                .where(episode.novel.id.eq(episodeDetailsDto.getNovelId()), episode.episodeNumber.lt(episodeDetailsDto.getEpisodeNumber()))
+                .orderBy(episode.episodeNumber.desc()) // 최신 회차 우선
+                .fetchFirst(); // 첫 번째 결과만 반환
+
+        Long nextEpisodeId = queryFactory
+                .select(episode.id)
+                .from(episode)
+                .where(episode.novel.id.eq(episodeDetailsDto.getNovelId()), episode.episodeNumber.gt(episodeDetailsDto.getEpisodeNumber()))
+                .orderBy(episode.episodeNumber.asc()) // 가장 이른 회차 우선
+                .fetchFirst(); // 첫 번째 결과만 반환
+
+        episodeDetailsDto.setNextEpisodeId(nextEpisodeId);
+        episodeDetailsDto.setPrevEpisodeId(previousEpisodeId);
+
+        return Optional.of(episodeDetailsDto);
     }
 }

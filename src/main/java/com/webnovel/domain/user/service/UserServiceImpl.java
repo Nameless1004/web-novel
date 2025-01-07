@@ -7,6 +7,7 @@ import com.webnovel.domain.security.jwt.AuthUser;
 import com.webnovel.domain.user.dto.DuplicatedResponseDto;
 import com.webnovel.domain.user.dto.NicknameUpdateRequestDto;
 import com.webnovel.domain.user.dto.UserDetailsDto;
+import com.webnovel.domain.user.dto.UserProfileResponseDto;
 import com.webnovel.domain.user.entity.User;
 import com.webnovel.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,5 +55,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseDto<DuplicatedResponseDto> checkEmail(String email) {
         return ResponseDto.of(HttpStatus.OK, new DuplicatedResponseDto(userRepository.existsByEmail(email)));
+    }
+
+    @Override
+    public ResponseDto<UserProfileResponseDto> getProfile(AuthUser authUser) {
+        User user = userRepository.findByIdOrElseThrow(authUser.getId());
+        UserProfileResponseDto response = UserProfileResponseDto.builder()
+                .nickname(user.getNickname())
+                .build();
+
+        return ResponseDto.of(HttpStatus.OK, response);
     }
 }

@@ -1,5 +1,6 @@
 package com.webnovel.domain.novel.service;
 
+import com.querydsl.core.types.Order;
 import com.webnovel.common.annotations.ExecutionTimeLog;
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,14 +128,11 @@ public class NovelServiceImpl implements NovelService {
      * @return
      */
     @Override
-    public ResponseDto<CustomPage<NovelListDto>> getNovelList(int page, int size) {
+    public ResponseDto<CustomPage<NovelListDto>> getNovelList(String orderby, String order, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Novel> result = novelRepository.findAllByOrderByLastUpdatedAtDesc(pageable);
-        List<NovelListDto> list = result.getContent().stream()
-                .map(NovelListDto::new)
-                .toList();
-
-        return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
+        NovelOrderCondition novelOrderCondition = NovelOrderCondition.valueOf(orderby.toUpperCase());
+        Order o = Order.valueOf(order.toUpperCase());
+        return ResponseDto.of(HttpStatus.OK, novelRepository.getNovelList(novelOrderCondition, o, pageable));
     }
 
     @ExecutionTimeLog

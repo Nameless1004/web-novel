@@ -19,6 +19,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         return findWithUserById(commentId).orElseThrow(() -> new NotFoundException("Comment not found"));
     }
 
-    @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.episode =:episode")
+    @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.episode =:episode ORDER BY c.commentedAt DESC")
     List<Comment> findAllByEpisode(@Param("episode") Episode episode);
+
+    boolean existsByUser_IdAndEpisode_Id(Long userId, Long episodeId);
 }
