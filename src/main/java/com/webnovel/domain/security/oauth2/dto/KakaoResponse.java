@@ -12,21 +12,21 @@ public class KakaoResponse implements OAuth2Response{
 
     @Override
     public String getProvider() {
-        return "";
+        return "kakao";
     }
 
     @Override
     public String getProviderId() {
-        return "";
+        return "id";
     }
 
     @Override
     public String getEmail() {
-        return "";
+        return "email";
     }
 
     @Override
     public String getName() {
-        return "";
+        return "name";
     }
 }

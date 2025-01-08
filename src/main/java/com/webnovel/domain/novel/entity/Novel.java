@@ -45,9 +45,12 @@ public class Novel {
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NovelTags> tags = new ArrayList<>();
 
+    @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NovelPreferenceUser> novelPreferenceUsers = new ArrayList<>();
 
     public Novel(User author, String title, String synopsis, NovelStatus status, LocalDateTime publishedAt) {
         this.author = author;
+
         this.title = title;
         this.synopsis = synopsis;
         this.status = status;
