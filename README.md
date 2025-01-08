@@ -1,4 +1,33 @@
-# web-novel
+# 픽션홀릭 프로젝트 (Fiction Holic)
+## 프로젝트 개요
+* 프로젝트명: 픽션홀릭 (Fiction Holic)
+* 목표: 웹 소설 독자와 작가들을 위한 플랫폼 개발. 사용자 친화적이고 확장 가능한 웹 애플리케이션으로, 독자들에게는 다양한 소설을 쉽게 탐색할 수 있는 환경을, 작가들에게는 창작물을 자유롭게 게시하고 관리할 수 있는 공간 제공.
+* 인원 1명
+* 사용 기술 스택
+  * Frontend - React, Vite, Vercel, JSP
+  * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0
+## 개발
+- [x] 소셜 로그인
+- [x] 일반 로그인 / 회원가입
+- [x] JWT 토큰(액세스, 리프레쉬)활용한 인증/인가
+- [x] 소설 CRUD
+- [x] 회차 CRUD
+- [x] 댓글 CRUD
+- [x] 현재 시간대 실시간 인기 소설 목록 조회 및 캐싱
+- [x] 프론트 배포
+- [x] 백엔드 배포
+- [ ] 구독 및 실시간 알림 서비스
+- [ ] 추천 소설 서비스
+- [ ] S3 프로필, 소설 커버, 회차 커버 사진 업로드
+
+## 서비스 URL
+[픽션홀릭](https://www.fictionholic.xyz)
+
+## API 명세서
+[POST MAN Docs](https://documenter.getpostman.com/view/37553747/2sAYJAfJQw)
+## ERD
+![erd](https://github.com/user-attachments/assets/8dc2a860-7dab-4088-b27a-7f229b042e0b)
+
 ## 트러블 슈팅
 ### 조회수 동시성 문제
 * 조회수 증가 시 동시성 문제가 발생
