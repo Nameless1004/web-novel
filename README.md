@@ -23,6 +23,12 @@
 ## 서비스 URL
 [픽션홀릭](https://www.fictionholic.xyz)
 
+## CI/CD PIPELINE
+![image](https://github.com/user-attachments/assets/b3a80889-003b-402b-b3f7-6fd84bad2d5b)
+
+## 구조
+![image](https://github.com/user-attachments/assets/a7711603-4d75-43e0-aa19-7faaf87c5afd)
+
 ## API 명세서
 [POST MAN Docs](https://documenter.getpostman.com/view/37553747/2sAYJAfJQw)
 ## ERD
