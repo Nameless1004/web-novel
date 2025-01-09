@@ -5,7 +5,7 @@
 * 인원 1명
 * 사용 기술 스택
   * Frontend - React, Vite, Vercel, JSP
-  * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0
+  * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0, Query DSL
 ## 개발
 - [x] 소셜 로그인
 - [x] 일반 로그인 / 회원가입
