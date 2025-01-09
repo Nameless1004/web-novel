@@ -4,8 +4,8 @@
 * 목표: 웹 소설 독자와 작가들을 위한 플랫폼 개발. 사용자 친화적이고 확장 가능한 웹 애플리케이션으로, 독자들에게는 다양한 소설을 쉽게 탐색할 수 있는 환경을, 작가들에게는 창작물을 자유롭게 게시하고 관리할 수 있는 공간 제공.
 * 인원: Backend 1명
 * 사용 기술 스택
-  * Frontend - React, Vite, Vercel, JSP // 프론트 관련 작업은 모두 CHAT-GPT를 이용하여 작업하였습니다.
-  * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0
+  * Frontend - React, Vite, Vercel, JSP
+  * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0, Query DSL
 ## 개발
 - [x] 소셜 로그인
 - [x] 일반 로그인 / 회원가입
