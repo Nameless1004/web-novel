@@ -2,9 +2,9 @@
 ## 프로젝트 개요
 * 프로젝트명: 픽션홀릭 (Fiction Holic)
 * 목표: 웹 소설 독자와 작가들을 위한 플랫폼 개발. 사용자 친화적이고 확장 가능한 웹 애플리케이션으로, 독자들에게는 다양한 소설을 쉽게 탐색할 수 있는 환경을, 작가들에게는 창작물을 자유롭게 게시하고 관리할 수 있는 공간 제공.
-* 인원 1명
+* 인원: Backend 1명
 * 사용 기술 스택
-  * Frontend - React, Vite, Vercel, JSP
+  * Frontend - React, Vite, Vercel, JSP // 프론트 관련 작업은 모두 CHAT-GPT를 이용하여 작업하였습니다.
   * Backend - Github Actions(CI/CD), Docker, AWS [route53, ec2, rds], JAVA, Spring Boot 3.3.*, Spring JPA, Redis, Spring Security, OAuth2.0
 ## 개발
 - [x] 소셜 로그인
@@ -120,7 +120,7 @@ LIMIT 0, 9;
 3. 복잡한 실행 계획
 * `GROUP BY`와 `ORDER BY` 작업이 많은 데이터를 처리하는 중간 결과에서 수행되어, 불필요한 데이터 연산량이 증가했습니다.
 
-**[해결방안]**
+**[문제 해결방안]**
 
 문제를 해결하기 위해 세 가지 방법을 고려해 보았습니다:
 
@@ -149,31 +149,10 @@ GROUP BY novel.id
 ORDER BY counts DESC
 LIMIT 0, 9;
 ```
+<details>
+ <summary>쿼리 수정 전 ANALYZE</summary>
 
-**[결과]**
-* 성능 개선
-  * 기존 쿼리에 비해 약 96.16%의 속도 개선을 달성했습니다. ( 4817ms -> 185ms : intelliJ Query Console 기준)
-  * 복잡한 조인 연산을 줄이고, 데이터 접근 효율을 높임으로써 실행 시간이 크게 단축되었습니다.
-
-* 추가 최적화
-  * 캐싱 도입
-    * POST Man으로 api를 테스트 했을 때 응답을 받기 까지 평균적으로 89ms가 나왔습니다. 인기 소설 조회의 경우 메인페이지에 있어 잦은 읽기 요청이 있어 캐싱을 해두기로하였습니다.
-    * 캐싱 DB로 Redis를 사용하였습니다. Redis를 사용한 이유는 Docker로 추가적인 인프라 구축 없이 간편하게 실행할 수 있습니다. 또한, Redis는 기본적으로 무료로 제공되며, 지금과 같은 작은 규모의 시스템에서는 비용 부담 없이 충분히 사용할 수 있는 장점이 있어 사용하였습니다.
-    * 조회수 기반으로 순위가 실시간으로 변화하므로, 캐시의 최신화가 중요했습니다. 이를 위해 TTL을 1분으로 설정하여 캐시가 1분 주기로 자동 갱신되도록 설정했습니다. 이로 인해 실시간으로 변화하는 조회수 순위를 반영하면서도, 데이터베이스에 과도한 부하를 주지 않고 빠른 응답 속도를 유지할 수 있습니다.
-    * 캐싱을 도입하여 89ms -> 9ms로 약 89.89% 속도 개선을 하였습니다.
-</details>
-
-
-
-
-
-
-
-
-
-
-
-// 수정 전 analyze
+ ```
 -> Limit: 9 row(s)  (actual time=3520..3520 rows=9 loops=1)
 -> Sort: episodeViewCount DESC, limit input to 9 row(s) per chunk  (actual time=3520..3520 rows=9 loops=1)
 -> Table scan on <temporary>  (actual time=3519..3519 rows=9934 loops=1)
@@ -189,9 +168,13 @@ LIMIT 0, 9;
 -> Single-row index lookup on episode using PRIMARY (id = evl.episode_id)  (cost=0.793 rows=1) (actual time=0.0604..0.0604 rows=1 loops=54520)
 -> Filter: (novel.author_id = `user`.id)  (cost=0.25 rows=1) (actual time=828e-6..895e-6 rows=1 loops=54520)
 -> Single-row index lookup on novel using PRIMARY (id = episode.novel_id)  (cost=0.25 rows=1) (actual time=624e-6..647e-6 rows=1 loops=54520)
+```
+</details>
 
-
-// 수정 후
+<details>
+ <summary>쿼리 수정 후 ANALYZE</summary>
+ 
+ ```
 -> Limit: 9 row(s)  (actual time=53.3..53.3 rows=9 loops=1)
 -> Sort: episodeViewCount DESC, limit input to 9 row(s) per chunk  (actual time=53.3..53.3 rows=9 loops=1)
 -> Table scan on <temporary>  (actual time=52.2..52.8 rows=9732 loops=1)
@@ -200,5 +183,22 @@ LIMIT 0, 9;
 -> Filter: ((evl.`hour` = 13) and (evl.novel_id is not null))  (cost=5088 rows=5032) (actual time=2.94..11.6 rows=37252 loops=1)
 -> Table scan on evl  (cost=5088 rows=50320) (actual time=0.454..8.77 rows=50331 loops=1)
 -> Single-row covering index lookup on novel using PRIMARY (id = evl.novel_id)  (cost=0.25 rows=1) (actual time=761e-6..778e-6 rows=1 loops=37252)
+```
+</details>
 
+**[결과]**
+* 성능 개선
+  * 기존 쿼리에 비해 약 96.16%의 속도 개선을 달성했습니다. ( 4817ms -> 185ms : intelliJ Query Console 기준)
+  * 복잡한 조인 연산을 줄이고, 데이터 접근 효율을 높임으로써 실행 시간이 크게 단축되었습니다.
 
+* 추가 최적화
+  * 캐싱 도입
+    * POST Man으로 api를 테스트 했을 때 응답을 받기 까지 평균적으로 89ms가 나왔습니다. 인기 소설 조회의 경우 메인페이지에 있어 잦은 읽기 요청이 있어 캐싱을 해두기로하였습니다.
+    * 캐싱 DB로 Redis를 사용하였습니다. Redis를 사용한 이유는 Docker로 추가적인 인프라 구축 없이 간편하게 실행할 수 있습니다. 또한, Redis는 기본적으로 무료로 제공되며, 지금과 같은 작은 규모의 시스템에서는 비용 부담 없이 충분히 사용할 수 있는 장점이 있어 사용하였습니다.
+    * 조회수 기반으로 순위가 실시간으로 변화하므로, 캐시의 최신화가 중요했습니다. 이를 위해 TTL을 1분으로 설정하여 캐시가 1분 주기로 자동 갱신되도록 설정했습니다. 이로 인해 실시간으로 변화하는 조회수 순위를 반영하면서도, 데이터베이스에 과도한 부하를 주지 않고 빠른 응답 속도를 유지할 수 있습니다.
+    * 캐싱을 도입하여 89ms -> 9ms로 약 89.89% 속도 개선을 하였습니다.
+    * 캐싱 전후 비교
+    
+  ![image](https://github.com/user-attachments/assets/ec6c07ee-6d0f-4440-a8ba-0aad6e5f32b3)
+
+</details>
