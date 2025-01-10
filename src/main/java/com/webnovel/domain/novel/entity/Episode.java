@@ -2,6 +2,7 @@ package com.webnovel.domain.novel.entity;
 
 import com.webnovel.domain.comment.entity.Comment;
 import com.webnovel.common.entity.Timestamped;
+import com.webnovel.domain.image.dto.UploadImageInfo;
 import com.webnovel.domain.novel.dto.EpisodeUpdateDto;
 import com.webnovel.domain.novel.enums.EpisodeStatus;
 import jakarta.persistence.*;
@@ -33,6 +34,9 @@ public class Episode extends Timestamped {
     private long viewCount; // 조회수
     private long recommendationCount; // 추천수
 
+    private String coverImageUrl;
+    private String coverImageKey;
+
     // 낙관적 락 용
     @Version
     private Long version;
@@ -51,7 +55,7 @@ public class Episode extends Timestamped {
     @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    public Episode(Novel novel, String title, String authorReview, String content, int episodeNumber) {
+    public Episode(Novel novel, String title, String authorReview, String content, int episodeNumber, UploadImageInfo coverImageInfo) {
         this.novel = novel;
         this.title = title;
         this.authorReview = authorReview;
@@ -59,12 +63,16 @@ public class Episode extends Timestamped {
         this.episodeNumber = episodeNumber;
         this.viewCount = 0;
         this.recommendationCount = 0;
+        this.coverImageKey = coverImageInfo.imageKey();
+        this.coverImageUrl = coverImageInfo.imageUrl();
     }
 
-    public void update(EpisodeUpdateDto updateDto) {
+    public void update(EpisodeUpdateDto updateDto, UploadImageInfo coverImageInfo) {
         this.title = updateDto.getTitle();
         this.authorReview = updateDto.getAuthorReview();
         this.content = updateDto.getContent();
+        this.coverImageKey = coverImageInfo.imageKey();
+        this.coverImageUrl = coverImageInfo.imageUrl();
     }
 
     public long increaseViewcount() {

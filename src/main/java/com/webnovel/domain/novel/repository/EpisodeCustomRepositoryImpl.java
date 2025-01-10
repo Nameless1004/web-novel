@@ -68,7 +68,7 @@ public class EpisodeCustomRepositoryImpl implements EpisodeCustomRepository {
         QComment comment = QComment.comment;
         QNovel novel = QNovel.novel;
 
-        EpisodeDetailsDto episodeDetailsDto = queryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, novel.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview))
+        EpisodeDetailsDto episodeDetailsDto = queryFactory.select(Projections.constructor(EpisodeDetailsDto.class, episode.id, novel.id, episode.episodeNumber, episode.viewCount, episode.recommendationCount, comment.id.count(), episode.title, episode.content, episode.authorReview, episode.coverImageUrl))
                 .from(episode)
                 .leftJoin(comment).on(comment.episode.id.eq(episode.id))
                 .innerJoin(episode.novel, novel)

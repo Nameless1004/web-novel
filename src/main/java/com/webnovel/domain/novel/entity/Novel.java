@@ -1,5 +1,6 @@
 package com.webnovel.domain.novel.entity;
 
+import com.webnovel.domain.image.dto.UploadImageInfo;
 import com.webnovel.domain.novel.dto.NovelUpdateDto;
 import com.webnovel.domain.novel.enums.NovelStatus;
 import com.webnovel.domain.user.entity.User;
@@ -48,7 +49,10 @@ public class Novel {
     @OneToMany(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NovelPreferenceUser> novelPreferenceUsers = new ArrayList<>();
 
-    public Novel(User author, String title, String synopsis, NovelStatus status, LocalDateTime publishedAt) {
+    private String coverImageUrl;
+    private String coverImageKey;
+
+    public Novel(User author, String title, String synopsis, NovelStatus status, LocalDateTime publishedAt, UploadImageInfo uploadImageInfo) {
         this.author = author;
 
         this.title = title;
@@ -56,6 +60,8 @@ public class Novel {
         this.status = status;
         this.publishedAt = publishedAt;
         this.lastUpdatedAt = publishedAt;
+        this.coverImageUrl = uploadImageInfo.imageUrl();
+        this.coverImageKey = uploadImageInfo.imageKey();
     }
 
     private void updateLastUpdatedAt() {
@@ -68,6 +74,12 @@ public class Novel {
         this.status = request.getStatus();
         this.tags.clear();
         this.tags.addAll(newTags);
+
         updateLastUpdatedAt();
+    }
+
+    public void updateImage(UploadImageInfo uploadImageInfo) {
+        this.coverImageUrl = uploadImageInfo.imageUrl();
+        this.coverImageKey = uploadImageInfo.imageKey();
     }
 }

@@ -3,6 +3,7 @@ package com.webnovel.domain.novel.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public class NovelCreateRequestDto {
     private String title;
     private String synopsis;
     private List<Long> tagIds;
+    private MultipartFile cover;
 }

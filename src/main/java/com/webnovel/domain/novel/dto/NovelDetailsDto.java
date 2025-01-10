@@ -15,6 +15,7 @@ public class NovelDetailsDto {
     private String title;
     private String synopsis;
     private String authorNickname;
+    private String coverImageUrl;
     private List<String> tags;
     private long totalSubscriberCount;
     private long totalPreferenceCount;
@@ -23,12 +24,13 @@ public class NovelDetailsDto {
     private long totalEpisodeCount;
     private long totalCommentCount;
 
-    public NovelDetailsDto(Long id, String title, String synopsis, String authorNickname,
+    public NovelDetailsDto(Long id, String title, String synopsis, String authorNickname, String coverImageUrl,
                            long totalSubscriberCount, long totalPreferenceCount, long totalViewCount,
                            long totalRecommendationCount, long totalEpisodeCount, long totalCommentCount) {
         this.id = id;
         this.title = title;
         this.synopsis = synopsis;
+        this.coverImageUrl = coverImageUrl;
         this.tags = new ArrayList<>();
         this.authorNickname = authorNickname;
         this.totalSubscriberCount = totalSubscriberCount;

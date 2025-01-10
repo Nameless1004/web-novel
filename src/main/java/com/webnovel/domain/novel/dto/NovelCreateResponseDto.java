@@ -10,6 +10,7 @@ import java.util.List;
 public class NovelCreateResponseDto {
     private Long novelId;
     private String authorUsername;
+    private String coverImageUrl;
     private List<String> tag;
     private String summary;
 }

@@ -16,6 +16,7 @@ public class NovelListDto {
     private String authorNickname;
     private LocalDate publishDate;
     private LocalDate lastUpdateDate;
+    private String coverImageUrl;
     private List<String> tags;
 
     public NovelListDto(Novel novel) {
@@ -25,7 +26,7 @@ public class NovelListDto {
         tags = new ArrayList<>();
     }
 
-    public NovelListDto(long novelId, String title, String authorNickname, LocalDateTime publishedDate, LocalDateTime lastUpdatedDate) {
+    public NovelListDto(long novelId, String title, String authorNickname, LocalDateTime publishedDate, LocalDateTime lastUpdatedDate, String coverImageUrl) {
         this.novelId = novelId;
         this.title = title;
         this.authorNickname = authorNickname;

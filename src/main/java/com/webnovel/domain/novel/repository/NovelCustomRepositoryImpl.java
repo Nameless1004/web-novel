@@ -50,7 +50,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
             return new CustomPage<>(new ArrayList<NovelListDto>(), pageable, 0);
         }
 
-        List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt))
+        List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt, novel.coverImageUrl))
                 .from(novel)
                 .innerJoin(novel.author, QUser.user)
                 .orderBy(orderSpecifier)
@@ -118,6 +118,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                         novel.title,
                         novel.synopsis,
                         novel.author.nickname,
+                        novel.coverImageUrl,
                         JPAExpressions.select(novelSubscribers.count())
                                 .from(novelSubscribers)
                                 .where(novelSubscribers.novel.eq(novel)),
