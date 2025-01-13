@@ -5,6 +5,8 @@ import com.webnovel.common.annotations.ExecutionTimeLog;
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.common.exceptions.NotFoundException;
+import com.webnovel.domain.image.components.ImageManger;
+import com.webnovel.domain.image.dto.UploadImageInfo;
 import com.webnovel.domain.novel.dto.*;
 import com.webnovel.domain.novel.entity.*;
 import com.webnovel.domain.novel.enums.NovelStatus;
@@ -14,6 +16,7 @@ import com.webnovel.domain.user.entity.User;
 import com.webnovel.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -42,6 +45,7 @@ public class NovelServiceImpl implements NovelService {
     private final NovelValidator novelValidator;
     private final NovelTagRepository novelTagRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ImageManger imageManger;
 
     @Override
     public ResponseDto<NovelCreateResponseDto> createNovel(AuthUser authUser, NovelCreateRequestDto request) {
@@ -50,29 +54,40 @@ public class NovelServiceImpl implements NovelService {
         // 타이틀 중복 검사
         novelValidator.checkDuplicatedNovelTitle(request.getTitle());
 
-        Novel savedNovel = novelRepository.save(new Novel(user, request.getTitle(), request.getSynopsis(), NovelStatus.PUBLISHING, LocalDateTime.now()));
+        // s3 커버 이미지 업로드
+        UploadImageInfo uploadImageInfo = imageManger.uploadImage(request.getCover());
 
-        List<Tag> tags = tagRepository.findAllById(request.getTagIds());
+        try {
+            Novel savedNovel = novelRepository.save(new Novel(user, request.getTitle(), request.getSynopsis(), NovelStatus.PUBLISHING, LocalDateTime.now(), uploadImageInfo));
 
-        List<NovelTags> novelTags = tags.stream()
-                .map(x -> new NovelTags(savedNovel, x))
-                .toList();
+            List<Tag> tags = tagRepository.findAllById(request.getTagIds());
 
-        novelTagRepository.saveAll(novelTags);
+            List<NovelTags> novelTags = tags.stream()
+                    .map(x -> new NovelTags(savedNovel, x))
+                    .toList();
 
-        List<String> tagNames = tags.stream()
-                .map(Tag::getName)
-                .toList();
 
-        eventPublisher.publishEvent(new NovelStatusChangedEvent(savedNovel));
+            novelTagRepository.saveAll(novelTags);
 
-        return ResponseDto.of(HttpStatus.CREATED,
-                NovelCreateResponseDto.builder()
-                        .novelId(savedNovel.getId())
-                        .tag(tagNames)
-                        .authorUsername(authUser.getUsername())
-                        .summary(savedNovel.getSynopsis())
-                        .build());
+            List<String> tagNames = tags.stream()
+                    .map(Tag::getName)
+                    .toList();
+
+            eventPublisher.publishEvent(new NovelStatusChangedEvent(savedNovel));
+
+            return ResponseDto.of(HttpStatus.CREATED,
+                    NovelCreateResponseDto.builder()
+                            .novelId(savedNovel.getId())
+                            .tag(tagNames)
+                            .authorUsername(authUser.getUsername())
+                            .summary(savedNovel.getSynopsis())
+                            .coverImageUrl(savedNovel.getCoverImageUrl())
+                            .build());
+        } catch (Exception e) {
+            // 예외 발생하면 s3 업로드 이미지 삭제
+            imageManger.deleteImage(uploadImageInfo.imageKey());
+            throw e;
+        }
     }
 
     @Override
@@ -94,7 +109,13 @@ public class NovelServiceImpl implements NovelService {
 
         novelTagRepository.deleteAllByNovel(novel);
         List<NovelTags> newTags = novelTagRepository.saveAllAndFlush(novelTags);
+
         novel.update(request, newTags);
+
+        // 커버 이미지 업데이트
+        UploadImageInfo uploadImageInfo = imageManger.updateImage(request.getCover(), novel.getCoverImageKey());
+        novel.updateImage(uploadImageInfo);
+
         NovelStatus prevStatus = novel.getStatus();
         Novel updatedNovel = novelRepository.save(novel);
 
@@ -110,6 +131,7 @@ public class NovelServiceImpl implements NovelService {
     @Override
     public ResponseDto<Void> deleteNovel(AuthUser authUser, long novelId) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
+        imageManger.deleteImage(novel.getCoverImageKey());
         novelRepository.delete(novel);
         return ResponseDto.of(HttpStatus.OK, "성공적으로 삭제됐습니다.");
     }
@@ -147,11 +169,7 @@ public class NovelServiceImpl implements NovelService {
     @Override
     public ResponseDto<CustomPage<NovelListDto>> getMyNovelList(AuthUser authUser, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Novel> result = novelRepository.findAllByAuthorIdOrderByLastUpdatedAtDesc(authUser.getId(), pageable);
-        List<NovelListDto> list = result.getContent().stream()
-                .map(NovelListDto::new)
-                .toList();
-        return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
+        return ResponseDto.of(HttpStatus.OK, novelRepository.getMyNovels(authUser, pageable));
     }
 
 

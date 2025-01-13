@@ -4,6 +4,8 @@ import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.common.exceptions.AlreadyRecommendedException;
 import com.webnovel.common.exceptions.NotFoundException;
+import com.webnovel.domain.image.components.ImageManger;
+import com.webnovel.domain.image.dto.UploadImageInfo;
 import com.webnovel.domain.novel.dto.EpisodeCreateRequestDto;
 import com.webnovel.domain.novel.dto.EpisodeDetailsDto;
 import com.webnovel.domain.novel.dto.EpisodeListDto;
@@ -45,6 +47,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     private final NovelRepository novelRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final EpisodeViewLogRepository episodeViewLogRepository;
+    private final ImageManger imageManger;
 
     /**
      * 조회수 증가
@@ -133,8 +136,8 @@ public class EpisodeServiceImpl implements EpisodeService {
     public ResponseDto<Void> addEpisode(AuthUser authUser, long novelId, EpisodeCreateRequestDto requestDto) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         novelValidator.checkAuthority(authUser, novel);
-
-        Episode newEpisode = new Episode(novel, requestDto.getTitle(), requestDto.getAuthorReview(), requestDto.getContent(), getLastEpisodeNumber(novel));
+        UploadImageInfo uploadImageInfo = imageManger.uploadImage(requestDto.getCover());
+        Episode newEpisode = new Episode(novel, requestDto.getTitle(), requestDto.getAuthorReview(), requestDto.getContent(), getLastEpisodeNumber(novel), uploadImageInfo);
         episodeRepository.save(newEpisode);
 
         return ResponseDto.of(HttpStatus.CREATED, "성공적으로 추가됐습니다.");
@@ -153,9 +156,9 @@ public class EpisodeServiceImpl implements EpisodeService {
     public ResponseDto<Void> updateEpisode(AuthUser authUser, long novelId, long episodeId, EpisodeUpdateDto updateDto) {
         Novel novel = novelRepository.findByNovelIdOrElseThrow(novelId);
         novelValidator.checkAuthority(authUser, novel);
-
         Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
-        episode.update(updateDto);
+        UploadImageInfo uploadImageInfo = imageManger.updateImage(updateDto.getCover(), episode.getCoverImageKey());
+        episode.update(updateDto, uploadImageInfo);
 
 
         return ResponseDto.of(HttpStatus.OK, "성공적으로 수정됐습니다.");
@@ -174,6 +177,7 @@ public class EpisodeServiceImpl implements EpisodeService {
         novelValidator.checkAuthority(authUser, novel);
 
         Episode episode = episodeRepository.findByIdOrElseThrow(episodeId);
+        imageManger.deleteImage(episode.getCoverImageKey());
         episodeRepository.updateEpisodeNumbersAfterDeletion(novelId, episode.getEpisodeNumber());
         episodeRepository.delete(episode);
 

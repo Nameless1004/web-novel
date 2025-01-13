@@ -6,6 +6,7 @@ import com.webnovel.domain.novel.dto.*;
 import com.webnovel.domain.novel.service.EpisodeService;
 import com.webnovel.domain.security.jwt.AuthUser;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class EpisodeController {
     public ResponseEntity<ResponseDto<Void>> registEpisode(
             @PathVariable Long novelId,
             @AuthenticationPrincipal AuthUser authUser,
-            @Validated @RequestBody EpisodeCreateRequestDto request) {
+            @Valid @ModelAttribute EpisodeCreateRequestDto request) {
 
         return episodeService.addEpisode(authUser, novelId, request)
                 .toEntity();
@@ -40,7 +41,7 @@ public class EpisodeController {
             @PathVariable Long novelId,
             @PathVariable Long episodeId,
             @AuthenticationPrincipal AuthUser authUser,
-            @Validated @RequestBody EpisodeUpdateDto request) {
+            @Valid @ModelAttribute EpisodeUpdateDto request) {
 
         return episodeService.updateEpisode(authUser, novelId,episodeId, request)
                 .toEntity();

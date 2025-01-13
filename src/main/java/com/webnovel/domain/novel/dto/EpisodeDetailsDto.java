@@ -17,13 +17,14 @@ public class EpisodeDetailsDto {
     private String title;
     private String content;
     private String authorReview;
+    private String coverImageUrl;
 
     @Setter
     private Long prevEpisodeId;
     @Setter
     private Long nextEpisodeId;
 
-    public EpisodeDetailsDto(long id, long novelId, int episodeNumber, long viewCount, long recommendationCount, long commentCount, String title, String content, String authorReview) {
+    public EpisodeDetailsDto(long id, long novelId, int episodeNumber, long viewCount, long recommendationCount, long commentCount, String title, String content, String authorReview, String coverImageUrl) {
         this.id = id;
         this.novelId = novelId;
         this.episodeNumber = episodeNumber;
@@ -33,5 +34,6 @@ public class EpisodeDetailsDto {
         this.title = title;
         this.content = content;
         this.authorReview = authorReview;
+        this.coverImageUrl = coverImageUrl;
     }
 }

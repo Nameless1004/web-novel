@@ -5,6 +5,7 @@ import com.webnovel.common.dto.ResponseDto;
 import com.webnovel.domain.novel.dto.*;
 import com.webnovel.domain.novel.service.NovelService;
 import com.webnovel.domain.security.jwt.AuthUser;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class NovelController {
     @PostMapping("/novels")
     public ResponseEntity<ResponseDto<NovelCreateResponseDto>> registNovel(
             @AuthenticationPrincipal AuthUser authUser,
-            @Validated @RequestBody NovelCreateRequestDto request ) {
+            @Valid @ModelAttribute NovelCreateRequestDto request ) {
         return novelService.createNovel(authUser, request)
                 .toEntity();
     }
@@ -99,7 +100,7 @@ public class NovelController {
     public ResponseEntity<ResponseDto<Void>> updateNovel(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long novelId,
-            @RequestBody NovelUpdateDto updateDto) {
+            @Valid @ModelAttribute NovelUpdateDto updateDto) {
         return novelService.updateNovel(authUser, novelId, updateDto)
                 .toEntity();
     }

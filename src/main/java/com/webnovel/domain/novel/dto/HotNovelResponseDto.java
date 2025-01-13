@@ -15,12 +15,14 @@ public class HotNovelResponseDto {
     private long novelId;
     private String title;
     private String authorNickname;
+    private String coverImageUrl;
     private List<String> tags;
 
     public HotNovelResponseDto(long count, Novel novel, List<String> tags) {
         this.count = count;
         this.novelId = novel.getId();
         this.title = novel.getTitle();
+        this.coverImageUrl = novel.getCoverImageUrl();
         this.authorNickname = novel.getAuthor().getNickname();
         this.tags = tags == null ? new ArrayList<>() : tags;
 
