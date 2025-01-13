@@ -1,6 +1,7 @@
 package com.webnovel.domain.novel.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
+import com.webnovel.domain.novel.enums.NovelStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class NovelDetailsDto {
     private String synopsis;
     private String authorNickname;
     private String coverImageUrl;
+    private NovelStatus status;
     private List<String> tags;
     private long totalSubscriberCount;
     private long totalPreferenceCount;
@@ -24,12 +26,13 @@ public class NovelDetailsDto {
     private long totalEpisodeCount;
     private long totalCommentCount;
 
-    public NovelDetailsDto(Long id, String title, String synopsis, String authorNickname, String coverImageUrl,
+    public NovelDetailsDto(Long id, String title, String synopsis, String authorNickname, String coverImageUrl, NovelStatus status,
                            long totalSubscriberCount, long totalPreferenceCount, long totalViewCount,
                            long totalRecommendationCount, long totalEpisodeCount, long totalCommentCount) {
         this.id = id;
         this.title = title;
         this.synopsis = synopsis;
+        this.status = status;
         this.coverImageUrl = coverImageUrl;
         this.tags = new ArrayList<>();
         this.authorNickname = authorNickname;

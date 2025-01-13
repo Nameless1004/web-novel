@@ -16,6 +16,7 @@ import com.webnovel.domain.user.entity.User;
 import com.webnovel.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -168,11 +169,7 @@ public class NovelServiceImpl implements NovelService {
     @Override
     public ResponseDto<CustomPage<NovelListDto>> getMyNovelList(AuthUser authUser, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Novel> result = novelRepository.findAllByAuthorIdOrderByLastUpdatedAtDesc(authUser.getId(), pageable);
-        List<NovelListDto> list = result.getContent().stream()
-                .map(NovelListDto::new)
-                .toList();
-        return ResponseDto.of(HttpStatus.OK, new CustomPage<>(list, pageable, result.getTotalElements()));
+        return ResponseDto.of(HttpStatus.OK, novelRepository.getMyNovels(authUser, pageable));
     }
 
 

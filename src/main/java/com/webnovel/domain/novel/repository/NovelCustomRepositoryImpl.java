@@ -14,6 +14,7 @@ import com.webnovel.domain.novel.dto.NovelDetailsDto;
 import com.webnovel.domain.novel.dto.NovelListDto;
 import com.webnovel.domain.novel.dto.NovelOrderCondition;
 import com.webnovel.domain.novel.entity.*;
+import com.webnovel.domain.security.jwt.AuthUser;
 import com.webnovel.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -59,12 +60,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                 .fetch();
 
         List<Long> novelIds = content.stream().map(NovelListDto::getNovelId).toList();
-        List<Tuple> z = queryFactory.select(novelTags.novel.id, tag.name)
-                .from(novelTags)
-                .join(novelTags.novel, novel)
-                .join(novelTags.tag, tag)
-                .where(novel.id.in(novelIds))
-                .fetch();
+
         Map<Long, List<String>> tags = queryFactory.select(novelTags.novel.id, tag.name)
                 .from(novelTags)
                 .join(novelTags.novel, novel)
@@ -119,6 +115,7 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
                         novel.synopsis,
                         novel.author.nickname,
                         novel.coverImageUrl,
+                        novel.status,
                         JPAExpressions.select(novelSubscribers.count())
                                 .from(novelSubscribers)
                                 .where(novelSubscribers.novel.eq(novel)),
@@ -222,5 +219,50 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
         }
 
         return null;
+    }
+
+    @Override
+    public CustomPage<NovelListDto> getMyNovels(AuthUser authUser, Pageable pageable) {
+        QUser user = QUser.user;
+        Long totalCount = queryFactory.select(novel.count())
+                .from(novel)
+                .join(user).on(novel.author.id.eq(authUser.getId()))
+                .fetchFirst();
+
+        if(totalCount == null) {
+            return new CustomPage<>(new ArrayList<NovelListDto>(), pageable, 0);
+        }
+
+        List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt, novel.coverImageUrl))
+                .from(novel)
+                .join(user).on(novel.author.id.eq(authUser.getId()))
+                .orderBy(novel.lastUpdatedAt.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        List<Long> novelIds = content.stream().map(NovelListDto::getNovelId).toList();
+
+        Map<Long, List<String>> tags = queryFactory.select(novelTags.novel.id, tag.name)
+                .from(novelTags)
+                .join(novelTags.novel, novel)
+                .join(novelTags.tag, tag)
+                .where(novel.id.in(novelIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.groupingBy(tuple ->
+                                tuple.get(novelTags.novel.id),
+                        Collectors.mapping(tuple -> tuple.get(tag.name),
+                                Collectors.toList())));
+
+        for (NovelListDto novelListDto : content) {
+            if(!tags.containsKey(novelListDto.getNovelId())) {
+                novelListDto.setTags(new ArrayList<>());
+            } else {
+                novelListDto.setTags(tags.get(novelListDto.getNovelId()));
+            }
+        }
+
+        return new CustomPage<>(content, pageable, totalCount);
     }
 }
