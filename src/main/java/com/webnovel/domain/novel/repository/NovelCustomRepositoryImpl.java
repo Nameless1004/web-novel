@@ -235,7 +235,8 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
 
         List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt, novel.coverImageUrl))
                 .from(novel)
-                .join(user).on(novel.author.id.eq(authUser.getId()))
+                .innerJoin(novel.author, user)
+                .where(novel.author.id.eq(authUser.getId()))
                 .orderBy(novel.lastUpdatedAt.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
