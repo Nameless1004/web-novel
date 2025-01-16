@@ -51,6 +51,8 @@ public class Novel {
 
     private String coverImageUrl;
     private String coverImageKey;
+    private long viewCount;
+    private long recommendationCount;
 
     public Novel(User author, String title, String synopsis, NovelStatus status, LocalDateTime publishedAt, UploadImageInfo uploadImageInfo) {
         this.author = author;
@@ -62,6 +64,8 @@ public class Novel {
         this.lastUpdatedAt = publishedAt;
         this.coverImageUrl = uploadImageInfo.imageUrl();
         this.coverImageKey = uploadImageInfo.imageKey();
+        this.viewCount = 0;
+        recommendationCount= 0;
     }
 
     private void updateLastUpdatedAt() {
@@ -81,5 +85,13 @@ public class Novel {
     public void updateImage(UploadImageInfo uploadImageInfo) {
         this.coverImageUrl = uploadImageInfo.imageUrl();
         this.coverImageKey = uploadImageInfo.imageKey();
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    public void increaseRecommendationCount() {
+        this.recommendationCount++;
     }
 }

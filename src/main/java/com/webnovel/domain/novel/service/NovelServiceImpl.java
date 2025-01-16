@@ -4,6 +4,7 @@ import com.querydsl.core.types.Order;
 import com.webnovel.common.annotations.ExecutionTimeLog;
 import com.webnovel.common.dto.CustomPage;
 import com.webnovel.common.dto.ResponseDto;
+import com.webnovel.common.exceptions.InvalidRequestException;
 import com.webnovel.common.exceptions.NotFoundException;
 import com.webnovel.domain.image.components.ImageManger;
 import com.webnovel.domain.image.dto.UploadImageInfo;
@@ -137,6 +138,7 @@ public class NovelServiceImpl implements NovelService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseDto<NovelDetailsDto> getNovelDetails(long novelId) {
         return ResponseDto.of(HttpStatus.OK, novelRepository.getNovelDetails(novelId)
                 .orElseThrow(() -> new NotFoundException("Novel not found / id: " + novelId)));
@@ -150,16 +152,19 @@ public class NovelServiceImpl implements NovelService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public ResponseDto<CustomPage<NovelListDto>> getNovelList(String orderby, String order, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        NovelOrderCondition novelOrderCondition = NovelOrderCondition.valueOf(orderby.toUpperCase());
-        Order o = Order.valueOf(order.toUpperCase());
+        NovelOrderCondition novelOrderCondition = NovelOrderCondition.parse(orderby);
+        Order o = parseOrder(order);
+
         return ResponseDto.of(HttpStatus.OK, novelRepository.getNovelList(novelOrderCondition, o, pageable));
     }
 
     @ExecutionTimeLog
     @Override
     @Cacheable(cacheNames = "realtime_hot_novels", key = "#hour", cacheManager = "cacheManager")
+    @Transactional(readOnly = true)
     public ResponseDto<CustomPage<HotNovelResponseDto>> getRealtimeHotNovels(String option, int hour, int page, int size) {
         CustomPage<HotNovelResponseDto> realtimeHotNovelList = novelRepository.getRealtimeHotNovelList(option, hour, PageRequest.of(page - 1, size));
         log.info("Cache Miss");
@@ -220,6 +225,17 @@ public class NovelServiceImpl implements NovelService {
      * @return
      */
     private long getTotalViewCount(Novel novel) {
-        return episodeRepository.getTotalViewCount(novel.getId());
+        return novel.getViewCount();
+    }
+
+    private Order parseOrder(String order) {
+        Order[] values = Order.values();
+        for (Order orderValue : values) {
+            if(orderValue.name().equalsIgnoreCase(order)) {
+                return orderValue;
+            }
+        }
+
+        throw new InvalidRequestException("Invalid Order condition: " +  order);
     }
 }

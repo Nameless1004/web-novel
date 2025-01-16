@@ -68,10 +68,13 @@ public class EpisodeServiceImpl implements EpisodeService {
         if(redisTemplate.opsForValue().setIfAbsent(checkKey, "#",ttl, TimeUnit.SECONDS)) {
             var episode = episodeRepository.findWithNovelByIdWithPessimisticLock(episodeId)
                     .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
+            Novel novel = novelRepository.findByIdWithPessimisticLock(episode.getNovel().getId())
+                    .orElseThrow(() -> new NotFoundException("Novel not found / ID " + episode.getNovel().getId()));
 
             // 로깅
             stampViewLog(authUser.toUserEntity(), episode);
 
+            novel.increaseViewCount();
             long updatedViewCount = episode.increaseViewcount();
             redisTemplate.opsForValue().set("viewCount::" + episodeId, updatedViewCount);
         }
@@ -85,6 +88,7 @@ public class EpisodeServiceImpl implements EpisodeService {
      */
     @Override
     @Caching(cacheable = @Cacheable(cacheNames = "viewCount", key = "#episodeId"))
+    @Transactional(readOnly = true)
     public long getViewCount(long episodeId) {
         return episodeRepository.findViewCountById(episodeId)
                 .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
@@ -107,6 +111,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long getRecommendationCount(long episodeId) {
         return episodeRepository.findRecommendationCountById(episodeId)
                 .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
@@ -192,6 +197,7 @@ public class EpisodeServiceImpl implements EpisodeService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public ResponseDto<CustomPage<EpisodeListDto>> getEpisodeList(int page, int size, long novelId) {
         Pageable pageable = PageRequest.of(page - 1, size);
         return ResponseDto.of(HttpStatus.OK, episodeRepository.getEpisodeLists(pageable, novelId));
@@ -204,6 +210,7 @@ public class EpisodeServiceImpl implements EpisodeService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public ResponseDto<EpisodeDetailsDto> getEpisodeDetails(AuthUser authUser, long episodeId) {
         EpisodeDetailsDto episodeDetailsDto = episodeRepository.getEpisode(episodeId)
                 .orElseThrow(() -> new NotFoundException("Episode not found / ID " + episodeId));
