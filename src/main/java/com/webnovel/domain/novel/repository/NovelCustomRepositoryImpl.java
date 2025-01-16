@@ -1,9 +1,11 @@
 package com.webnovel.domain.novel.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.webnovel.common.dto.CustomPage;
@@ -14,8 +16,10 @@ import com.webnovel.domain.novel.dto.NovelDetailsDto;
 import com.webnovel.domain.novel.dto.NovelListDto;
 import com.webnovel.domain.novel.dto.NovelOrderCondition;
 import com.webnovel.domain.novel.entity.*;
+import com.webnovel.domain.novel.enums.NovelSearchCondition;
 import com.webnovel.domain.security.jwt.AuthUser;
 import com.webnovel.domain.user.entity.QUser;
+import io.jsonwebtoken.lang.Strings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -82,16 +86,6 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
         }
 
         return new CustomPage<>(content, pageable, totalCount);
-    }
-
-    private OrderSpecifier[] createOrderSpecifier(NovelOrderCondition orderCondition, Order order) {
-        List<OrderSpecifier> orderSpecifiers = new ArrayList<>();
-
-        if(orderCondition.equals(NovelOrderCondition.NEW)) {
-            orderSpecifiers.add(new OrderSpecifier(order, novel.publishedAt));
-        }
-
-        return orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]);
     }
 
     @Override
@@ -265,5 +259,84 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
         }
 
         return new CustomPage<>(content, pageable, totalCount);
+    }
+
+    @Override
+    public CustomPage<NovelListDto> search(NovelSearchCondition searchCondition, NovelOrderCondition orderCondition, Order order, String keyword, Pageable pageable) {
+
+        OrderSpecifier[] orderSpecifier = createOrderSpecifier(orderCondition, order);
+
+        BooleanBuilder bb = new BooleanBuilder();
+
+        // 서치 컨디션
+        if(searchCondition.equals(NovelSearchCondition.TITLE)) {
+            bb.and(novel.title.containsIgnoreCase(keyword));
+        } else if(searchCondition.equals(NovelSearchCondition.AUTHOR)) {
+            bb.and(novel.author.nickname.containsIgnoreCase(keyword));
+        } else if(searchCondition.equals(NovelSearchCondition.ALL)) {
+            bb.and(novel.title.containsIgnoreCase(keyword))
+                    .or(novel.author.nickname.containsIgnoreCase(keyword));
+        }
+
+        // 검색어가 없을 경우
+        if(!Strings.hasText(keyword)) {
+            return new CustomPage<>(new ArrayList<>(), pageable, 0);
+        }
+
+        Long totalCount = queryFactory.select(novel.count())
+                .where(bb) // 키워드 포함 검색
+                .from(novel).fetchFirst();
+
+        if(totalCount == null) {
+            return new CustomPage<>(new ArrayList<>(), pageable, 0);
+        }
+
+        List<NovelListDto> content = queryFactory.select(Projections.constructor(NovelListDto.class, novel.id, novel.title, novel.author.nickname, novel.publishedAt, novel.lastUpdatedAt, novel.coverImageUrl))
+                .from(novel)
+                .innerJoin(novel.author, QUser.user)
+                .where(bb) // 키워드 포함 검색
+                .orderBy(orderSpecifier)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        List<Long> novelIds = content.stream().map(NovelListDto::getNovelId).toList();
+
+
+        Map<Long, List<String>> tags = queryFactory.select(novelTags.novel.id, tag.name)
+                .from(novelTags)
+                .join(novelTags.novel, novel)
+                .join(novelTags.tag, tag)
+                .where(novel.id.in(novelIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.groupingBy(tuple ->
+                                tuple.get(novelTags.novel.id),
+                        Collectors.mapping(tuple -> tuple.get(tag.name),
+                                Collectors.toList())));
+
+        for (NovelListDto novelListDto : content) {
+            if(!tags.containsKey(novelListDto.getNovelId())) {
+                novelListDto.setTags(new ArrayList<>());
+            } else {
+                novelListDto.setTags(tags.get(novelListDto.getNovelId()));
+            }
+        }
+
+        return new CustomPage<>(content, pageable, totalCount);
+    }
+
+    private OrderSpecifier[] createOrderSpecifier(NovelOrderCondition orderCondition, Order order) {
+        List<OrderSpecifier> orderSpecifiers = new ArrayList<>();
+
+        if(orderCondition.equals(NovelOrderCondition.NEW)) {
+            orderSpecifiers.add(new OrderSpecifier(order, novel.publishedAt));
+        } else if(orderCondition.equals(NovelOrderCondition.VIEW)) {
+            orderSpecifiers.add(new OrderSpecifier(order, novel.viewCount));
+        } else if(orderCondition.equals(NovelOrderCondition.UPDATE)) {
+            orderSpecifiers.add(new OrderSpecifier(order, novel.lastUpdatedAt));
+        }
+
+        return orderSpecifiers.toArray(new OrderSpecifier[orderSpecifiers.size()]);
     }
 }

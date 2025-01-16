@@ -18,6 +18,16 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentExceptionException(final IllegalArgumentException e) {
+        ErrorResponse err = ErrorResponse.builder()
+                .message(e.getMessage())
+                .code(HttpStatus.BAD_REQUEST.value())
+                .build();
+
+        return err.toEntity();
+    }
+
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<?> handleServiceException(final ServiceException e) {
         ErrorResponse err = ErrorResponse.builder()

@@ -7,8 +7,10 @@ import com.webnovel.domain.security.oauth2.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,7 +30,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(cors->cors.configure(http));
+        http.cors(cors -> cors.configure(http));
         http
                 .csrf(AbstractHttpConfigurer::disable);
         http
@@ -50,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/check/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/novels", "/api/novels/hot").permitAll()
                         .requestMatchers("/health").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());
@@ -58,6 +61,19 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/favicon.ico",
+                "/actuator/**",
+                "/health",
+                "/",
+                "/error",
+                "/api/auth/**",
+                "/api/users/check/**"
+        ).requestMatchers(HttpMethod.GET, "/api/novels", "/api/novels/hot");
     }
 
     @Bean

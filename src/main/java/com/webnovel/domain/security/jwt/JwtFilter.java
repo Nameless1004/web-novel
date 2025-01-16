@@ -28,19 +28,9 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         log.info(":::Request URI::: [ {}:{} ]", method, requestURI);
 
-        if(requestURI.startsWith("/health")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if(requestURI.startsWith("/api/auth/") || requestURI.startsWith("/api/users/check")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (header == null || !header.startsWith("Bearer ")) {
-            // 회원가입 안돼있을 때 넘겨줌
-            filterChain.doFilter(request, response);
+        if ((header == null || !header.startsWith("Bearer "))) {
+//            filterChain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not found");
             return;
         }
 

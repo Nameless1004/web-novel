@@ -6,6 +6,7 @@ import com.webnovel.domain.novel.dto.HotNovelResponseDto;
 import com.webnovel.domain.novel.dto.NovelDetailsDto;
 import com.webnovel.domain.novel.dto.NovelListDto;
 import com.webnovel.domain.novel.dto.NovelOrderCondition;
+import com.webnovel.domain.novel.enums.NovelSearchCondition;
 import com.webnovel.domain.security.jwt.AuthUser;
 import org.springframework.data.domain.Pageable;
 
@@ -18,4 +19,6 @@ public interface NovelCustomRepository {
     CustomPage<HotNovelResponseDto> getRealtimeHotNovelList(String option, int hour, Pageable pageable);
 
     CustomPage<NovelListDto> getMyNovels(AuthUser authUser, Pageable pageable);
+
+    CustomPage<NovelListDto> search(NovelSearchCondition searchCondition, NovelOrderCondition orderCondition, Order order, String keyword, Pageable pageable);
 }
